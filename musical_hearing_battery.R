@@ -1,7 +1,6 @@
 library(psyquest)
 library(psychTestR)
 library(shiny)
-library(EHI)
 library(tidyverse)
 #source("./utils.R")
 source("./data_raw/general_dict.R")
@@ -9,11 +8,11 @@ source("./data_raw/general_dict.R")
 debug <- T
 
 if(debug){
-  num_items <- c(BAT = 1, EDT = 1,  MDT = 1, MPT = 1, RAT = 1, JAJ = 1, BDS = 1, PIT = 1, EHI = 2)  
+  num_items <- c(BAT = 1, EDT = 1,  MDT = 1, MPT = 1, RAT = 1, JAJ = 1, BDS = 1, PIT = 1, EHI = 2, MUS = 1)  
   take_training <- F
 }else{
   #num_items <- c(BAT  = 20, EDT = 18,  MDT = 16, MPT = 20, RAT = 14)
-  num_items <- c(BAT  = 18, EDT = 18,  MDT = 15, MPT = 18, JAJ = 7, BDS = 8, PIT = 20, EHI = 24)
+  num_items <- c(BAT  = 18, EDT = 18,  MDT = 15, MPT = 18, JAJ = 7, BDS = 8, PIT = 20, EHI = 24, MUS = 25)
   take_training <- T
 } 
 
@@ -29,7 +28,7 @@ consent_page <- function(dict = general_dict, variant = NULL){
   psychTestR::new_timeline(
     psychTestR::checkbox_page(
       label = "consent",
-      prompt = shiny::includeHTML("consent_schreiber.html"),
+      prompt = shiny::includeHTML("consent_dgm.html"),
       labels = list(psychTestR::i18n("MPIAE_CONSENT_PROMPT")),
       choices = c("choice1"),
       javascript = "checkboxes = $('input:checkbox'); checkboxes.slice(checkboxes.length - 1, checkboxes.length).click(function() { checkboxes.slice(0, checkboxes.length - 1).prop('checked', '') }); checkboxes.slice(0, checkboxes.length - 1).click(function() { checkboxes.slice(checkboxes.length - 1, checkboxes.length).prop('checked', '') });",
@@ -38,50 +37,16 @@ consent_page <- function(dict = general_dict, variant = NULL){
       trigger_button_text = psychTestR::i18n("CONTINUE"),
       failed_validation_message = psychTestR::i18n("PLEASE_CONFIRM_CONSENT")),
     dict = dict)
-  
 }
 
 
-break_page_gms <- function(language= "de"){
+id_page <- function(language= "de"){
   if(language == "de"){
     psychTestR::join(
-      psychTestR::one_button_page(
-        shiny::includeHTML("break_page_gms_schreiber.html"),
-        button_text = "Weiter"
-      ))
-  }
-  else{
-    psychTestR::join(
-      psychTestR::one_button_page(
-        shiny::h4("Welcome to the this experiment"),
-        button_text = "Continue"
-      ))
-  }
-}
-
-break_page_ehi <- function(language= "de"){
-  if(language == "de"){
-    psychTestR::join(
-      psychTestR::one_button_page(
-        shiny::includeHTML("break_page_ehi_schreiber.html"),
-        button_text = "Weiter"
-      ))
-  }
-  else{
-    psychTestR::join(
-      psychTestR::one_button_page(
-        shiny::h4("Welcome to the this experiment"),
-        button_text = "Continue"
-      ))
-  }
-}
-
-break_page_mhe <- function(language= "de"){
-  if(language == "de"){
-    psychTestR::join(
-      psychTestR::one_button_page(
-        shiny::includeHTML("break_page_mhe_schreiber.html"),
-        button_text = "Weiter"
+      psychTestR::get_p_id(
+        "Bitte geben Sie hier eine ID nach folgendem Schema ein: 
+        die ersten drei Buchstaben des Mädchennamens der Mutter, den Geburtstag von Ihnen persönlich (nur den Tag) und die letzten zwei Buchstaben Ihres Nachnamens",
+        placeholder = "z.B. KLA03ER"
       ))
   }
   else{
@@ -97,7 +62,7 @@ landing_page1 <- function(language= "de"){
   if(language == "de"){
     psychTestR::join(
       psychTestR::one_button_page(
-        shiny::includeHTML("welcome1_page_schreiber.html"),
+        shiny::includeHTML("welcome_page.html"),
         button_text = "Weiter"
       ))
   }
@@ -142,9 +107,9 @@ final_page <- function(language = "de"){
   }
 }
 
-final_page2 <- function(language = "de"){
+final_page <- function(language = "de"){
   if(language == "de"){
-    final_prompt <- shiny::includeHTML("final_page_schreiber.html")
+    final_prompt <- shiny::includeHTML("final_page.html")
     psychTestR::final_page(final_prompt)
   }
   else{
@@ -155,10 +120,10 @@ final_page2 <- function(language = "de"){
 }
   
 
-schreiber_battery  <- function(title = "Emotion in Musik und Sprache",
-                               documentation = "EHI_EDT",
-                               admin_password = "EmoHI",
-                               researcher_email = "schreibera@stud.hmtm-hannover.de",
+musical_hearing_battery  <- function(title = "Testbatterie Musikalisches Hören",
+                               documentation = "musical_hearing",
+                               admin_password = "MupsyUHH",
+                               researcher_email = "daniel.muellensiefen@uni-hamburg.de",
                                languages = c("de", "en"),
                                dict = psyquest::psyquest_dict,
                                ...) {
@@ -178,60 +143,28 @@ schreiber_battery  <- function(title = "Emotion in Musik und Sprache",
       landing_page1(languages[1]),
       dict = dict
     ),
-    landing_page2(),
     consent_page(),
-    psychTestR::dropdown_page(
-      label = "Klasse",
-      prompt = "Wähle deine Klasse aus",
-      choices = c("5a", "5b", "5c", "5d", "6a", "6b", "6c", "6d", "6e"),
-      save_answer = T,
-      next_button_text = "Weiter"
-    ),
+    id_page(),
     psychTestR::volume_calibration_page(
       prompt = shiny::div(
-        shiny::h4(volume_head), 
+        shiny::h4(volume_head),
         shiny::p(volume_prompt, style = "margin-left:20%;margin-right:20%;text-align:center")),
       url = "https://s3-eu-west-1.amazonaws.com/media.gold-msi.org/misc/audio/terminator.mp3",
       btn_play_prompt = volume_button, button_text = "Weiter"),
+    # psyquest::DEG(
+    #   subscales = c("Gender",
+    #                 "Country Formative Years",
+    #                 "Type of Hearing Impairment",
+    #                 "Age",
+    #                 "Country of Residence",
+    #                 "Nationality")),
     psyquest::DEG(
-      subscales = c("Gender",
-                    "Country Formative Years",
-                    "Hearing Impairment",
-                    "Type of Hearing Impairment",
-                    "Age",
-                    "First Language",
-                    "Country of Residence",
-                    "Nationality",
-                    "Second Language",
-                    "Best Shot"),
-      language = "de",
-      year_range = c(1950, 2016)),
-    EDT::EDT(num_items = num_items[["EDT"]],
-             with_welcome = T,
-             with_finish = T,
-             take_training = take_training[1],
-             feedback = NULL),
-    break_page_gms(),
-    psyquest::GMS(subscales = c(
-                  "Abilities",
-                  "Absolute Pitch",
-                  "Emotions",
-                  "General",
-                  "Instrument",
-                  "Perceptual Abilities",
-                  "Singing Abilities",
-                  "Start Age")),
-    break_page_ehi(),
-    #break_page(),
-    EHI::EHI(num_items = num_items[["EHI"]],
-              with_welcome = T,
-              take_training = take_training[1],
-              with_finish = T,
-              feedback = NULL),
-    break_page_mhe(),
-    psyquest::MHE(),
+      subscales = c("Gender", "Age", "Nationality", "Country Formative Years")
+    ),
+    psyquest::MUS(subscales = "Mellow"),
+    psyquest::TPI(),
     psychTestR::elt_save_results_to_disk(complete = T),
-    final_page2(languages[[1]]))
+    final_page(languages[[1]]))
   psychTestR::make_test(
     elts,
     opt = psychTestR::test_options(title = title,
@@ -241,9 +174,18 @@ schreiber_battery  <- function(title = "Emotion in Musik und Sprache",
                                    problems_info = problems_info,
                                    force_p_id_from_url = FALSE,
                                    allow_any_p_id_url  = TRUE,
-                                   logo = "https://s3.eu-west-1.amazonaws.com/media.dots.org/img/Logo_hmtmh_4c.jpg",
+                                   logo = "https://s3.eu-west-1.amazonaws.com/media.dots.org/img/up-uhh-logo-u-2010-u-png.png",
                                    logo_width = "107px",
                                    logo_height = "auto",
                                    languages = languages,
                                    theme = shinythemes::shinytheme("yeti")))
 }
+
+test_battery <- psychTestR::make_test(
+  join(
+    DEG(),
+    MUS(),
+    TPI(),
+    final_page()
+  )
+)
