@@ -1,0 +1,33 @@
+ID,item1,item2,item3,item4,syllables,relation,correct
+201,Programm,Rücken,Waggon,Person,2,none,item2
+202,Ziegel,Diktat,Betrug,Gesicht,2,none,item1
+203,Frisur,Stempel,Winter,Pfote,2,none,item1
+204,Apfel,Silbe,Perle,Mutant,2,none,item4
+205,Salat,Sache,Samba,Truhe,2,phonological,item1
+206,Flöte,Klavier,Löwe,Geige,2,semantic,item2
+207,Koran,Konflikt,Komma,Kopie,2,phonological,item4
+208,Monarch,Regent,König,Geruch,2,semantic,item3
+209,Justiz,Betrieb,Partei,Gesang,2,none,none
+210,Hobby,Mantel,Kanzler,Liebe,2,none,none
+211,Arrest,Armee,Bereich,Archiv,2,phonological,none
+212,Maler,Pinsel,Mutter,Farbe,2,semantic,none
+301,Überfall,Ungeduld,Minigolf,Einigung,3,none,none
+302,Niedergang,Zauberer,Einzelhaft,Bedenken,3,none,item4
+303,Lexikon,Medizin,Kamera,Maximum,3,none,item2
+304,November,Dezember,Januar,Minute,3,semantic,item3
+305,Eidechse,Laterne,Kassette,Rakete,3,none,item1
+306,Geburtstag,General,Gedanke,Geheimnis,3,phonological,item2
+307,Elefant,Krokodil,Leopard,Industrie,3,semantic,none
+308,Übermut,Demokrat,Batterie,Diplomat,3,none/phonol.,item1
+309,Dokument,Politik,Hypothek,Erotik,3,none/phonol.,item4
+310,Himbeere,Flughafen,Ausnahme,Erdbeben,3,none,none
+311,Tomate,Banane,Melone,Zitrone,3,sem./phonol.,none
+312,Qualität,Pandemie,Horoskop,Privileg,3,none,none
+401,rote Dose,meine Tante,keine Freiheit,neue Partei,4,none,item4
+402,Tribut zollen,Pläne schmieden,Besteck putzen,Gehalt zahlen,4,none,item2
+403,Bekantheitsgrad,Bestelloption,Bereitschaftsdienst,Beteiligung,4,none,none
+404,Hass verbreiten,Hüte tragen,Ruhm erringen,einsam bleiben,4,none,none
+405,tote Tiere,trübe Tassen,acht Regale,teurer Turnschuh,4,phonological,none
+406,genug Verstand,gegen die Wand,unter der Hand,unelegant,4,phonological,item1
+407,Warensendung,Lieferzeiten,Versandkosten,Rechnungsnummer,4,semantic,item3
+408,unser Produkt,neues Modell,größerer Markt,hoher Gewinn,4,semantic,none
