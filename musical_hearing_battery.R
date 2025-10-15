@@ -118,7 +118,26 @@ final_page <- function(language = "de"){
     
   }
 }
-  
+
+institution_yes_no <- function(language = "de"){
+  if(language == "de"){
+    psychTestR::NAFC_page(
+      label = "institution_yes_no",
+      prompt = "Ich nehme an diesem Test im Rahmen einer Lehrveranstaltung teil",
+      choices = c("Ja", "Nein")
+    )
+  }
+}
+
+institution_name <- function(language = "de"){
+  if(language == "de"){
+    psychTestR::text_input_page(
+      label = "institution",
+      prompt = "Name der Institution, an der die Lehrveranstaltung läuft:",
+      button_text = "Weiter"
+    )
+  }
+}
 
 musical_hearing_battery  <- function(title = "Testbatterie Musikalisches Hören",
                                documentation = "musical_hearing",
@@ -158,6 +177,12 @@ musical_hearing_battery  <- function(title = "Testbatterie Musikalisches Hören"
     #                 "Age",
     #                 "Country of Residence",
     #                 "Nationality")),
+    institution_yes_no(),
+    conditional(test = function(state, ...){
+      ans <- answer(state)
+      ans == "Ja"
+    },
+    logic = psychTestR::join(institution_name())),
     psyquest::DEG(
       subscales = c("Gender", "Age", "Nationality", "Country Formative Years")
     ),
