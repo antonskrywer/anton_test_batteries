@@ -119,10 +119,10 @@ final_page <- function(language = "de"){
   }
 }
 
-institution_yes_no <- function(language = "de"){
+institution_logical <- function(language = "de"){
   if(language == "de"){
     psychTestR::NAFC_page(
-      label = "institution_yes_no",
+      label = "institution_logical",
       prompt = "Ich nehme an diesem Test im Rahmen einer Lehrveranstaltung teil",
       choices = c("Ja", "Nein")
     )
@@ -132,7 +132,7 @@ institution_yes_no <- function(language = "de"){
 institution_name <- function(language = "de"){
   if(language == "de"){
     psychTestR::text_input_page(
-      label = "institution",
+      label = "institution_name",
       prompt = "Name der Institution, an der die Lehrveranstaltung läuft:",
       button_text = "Weiter"
     )
