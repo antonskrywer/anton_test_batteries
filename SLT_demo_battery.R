@@ -2,6 +2,7 @@ library(psyquest)
 library(psychTestR)
 library(shiny)
 library(tidyverse)
+library(SLT)
 #source("./utils.R")
 source("./data_raw/general_dict.R")
   
@@ -38,17 +39,15 @@ consent_page <- function(dict = general_dict, variant = NULL){
       failed_validation_message = psychTestR::i18n("PLEASE_CONFIRM_CONSENT")),
     dict = dict)
 }
-id <- psychTestR::text_input_page(
+get_id <- psychTestR::text_input_page(
   label = "id",
   prompt = "Gib bitte Deine ID ein"
 )
 
 psychTestR::join(
-  psychTestR::new_timeline(
     id,
-    SLT_standalone()
+    SLT()
   )
-)
 
 id_page <- function(language= "de"){
   if(language == "de"){
@@ -88,10 +87,10 @@ landing_page1 <- function(language= "de"){
 
 
 
-musical_hearing_battery  <- function(title = "Testbatterie Musikalisches Hören",
-                               documentation = "musical_hearing",
-                               admin_password = "MupsyUHH",
-                               researcher_email = "daniel.muellensiefen@uni-hamburg.de",
+SLT_demo_battery  <- function(title = "SLT_demo_battery",
+                               documentation = "SLT_demo",
+                               admin_password = "SLT",
+                               researcher_email = "anton.schreiber@uni-hamburg.de",
                                languages = c("de", "en"),
                                dict = psyquest::psyquest_dict,
                                ...) {
@@ -107,39 +106,9 @@ musical_hearing_battery  <- function(title = "Testbatterie Musikalisches Hören"
   }
   
   elts <- psychTestR::join(
-    psychTestR::new_timeline(
-      landing_page1(languages[1]),
-      dict = dict
-    ),
-    consent_page(),
-    id_page(),
-    psychTestR::volume_calibration_page(
-      prompt = shiny::div(
-        shiny::h4(volume_head),
-        shiny::p(volume_prompt, style = "margin-left:20%;margin-right:20%;text-align:center")),
-      url = "https://s3-eu-west-1.amazonaws.com/media.gold-msi.org/misc/audio/terminator.mp3",
-      btn_play_prompt = volume_button, button_text = "Weiter"),
-    # psyquest::DEG(
-    #   subscales = c("Gender",
-    #                 "Country Formative Years",
-    #                 "Type of Hearing Impairment",
-    #                 "Age",
-    #                 "Country of Residence",
-    #                 "Nationality")),
-    institution_yes_no(),
-    conditional(test = function(state, ...){
-      ans <- answer(state)
-      ans == "Ja"
-    },
-    logic = psychTestR::join(institution_name())),
-    psyquest::DEG(
-      subscales = c("Gender", "Age", "Nationality", "Country Formative Years")
-    ),
-    psyquest::MUS(subscales = "Mellow"),
-    psyquest::TPI(),
-    psychTestR::elt_save_results_to_disk(complete = T),
-    final_page(languages[[1]]))
-  psychTestR::make_test(
+    get_id(),
+    SLT::SLT(num_items = 20, num_blocks = 3, with_welcome = F))
+    psychTestR::make_test(
     elts,
     opt = psychTestR::test_options(title = title,
                                    admin_password = admin_password,
