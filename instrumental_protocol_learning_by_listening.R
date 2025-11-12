@@ -283,4 +283,4 @@ t1 <- make_test(protocol,
                   admin_password = "UHHLernProtokoll",
                   researcher_email = "anton.schreiber@uni-hamburg.de"
                 ))
-runApp(t1)
+#runApp(t1)
