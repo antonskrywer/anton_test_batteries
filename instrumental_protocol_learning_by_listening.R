@@ -50,6 +50,7 @@ get_id <- text_input_page(
   label = "id",
   prompt = "Bitte gib Deine Matrikelnummer als ID ein",
   placeholder = "z.B.1045738",
+  button_text = "Weiter",
   validate = function(state, ...) {
     x <- answer(state)
     if (is.na(suppressWarnings(as.numeric(x))) ||
@@ -61,7 +62,8 @@ get_id <- text_input_page(
 
 open_question <- text_input_page(
   label = "OQ",
-  prompt = "Gibt es weitere Dinge, die Du kommentieren/protokollieren möchtest (z.B. besondere Lernfort-/Rückschritte; Schwierigkeiten der Performance etc.)?"
+  prompt = "Gibt es weitere Dinge, die Du kommentieren/protokollieren möchtest (z.B. besondere Lernfort-/Rückschritte; Schwierigkeiten der Performance etc.)?",
+  button_text = "Weiter"
 )
 inst_demographics <- one_button_page(
   div(
@@ -266,7 +268,7 @@ protocol <- join(
                  ans == "Ja"
                },
                logic = join(absolute_assessment, relative_assessment, processing_type, open_question, elt_save_results_to_disk(T), final_page)),
-               join(relative_assessment, processing_type, open_question, elt_save_results_to_disk(T), final_page))),
+               join(absolute_assessment, relative_assessment, processing_type, open_question, elt_save_results_to_disk(T), final_page))),
   inst_demographics,
   demographics,
   absolute_assessment,
@@ -279,8 +281,8 @@ protocol <- join(
 
 t1 <- make_test(protocol,
                 opt = test_options(
-                  title = "Lernprotokoll",
-                  admin_password = "UHHLernProtokoll",
+                  title = "Lernprotokoll Learning By Listening",
+                  admin_password = "learning",
                   researcher_email = "anton.schreiber@uni-hamburg.de"
                 ))
 #runApp(t1)
