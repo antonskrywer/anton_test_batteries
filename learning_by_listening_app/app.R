@@ -5,7 +5,83 @@ library(shinythemes)
 library(tidyverse)
 
 data <- read.csv("data_app/results.csv", stringsAsFactors = FALSE)
-data_ref <- read.csv("data_app/all_data.csv")
+# data_ref <- read.csv("data_app/all_data.csv")
+
+on_server <- grepl("learning_by_listening_app", getwd())
+
+if(on_server){
+  result_dir <- "../learning_by_listening_app/results"
+} else {
+  result_dir <- "data/from_server"
+}
+
+
+setup_workspace <- function(results = "data/from_server"){
+  master <- read_data(results)
+  assign("master", master, globalenv())
+  invisible(master)
+}
+
+# read_data <- function(result_dir = "data/from_server"){
+#   res_files <- list.files(result_dir, pattern = "*rds", full.names = T)
+#   #browser()
+#   
+#   map_dfr(res_files, function(fname){
+#     #browser()
+#     tmp <- readRDS(fname) %>% as.list()
+#     nms <- tmp %>% names()
+#     if(!("session" %in% names(tmp))){
+#       return(NULL)
+#     }
+#     session <- tmp$session[c("p_id", "time_started", "complete", "current_time", "ability", "score")] %>% as.data.frame()
+#     #bind_cols(session, deg, gms, edt, ehi, mhe, class)
+#   }) %>%
+#     distinct() %>%
+#     as_tibble()
+# }
+read_data <- function(result_dir = "data/from_server") {
+  res_files <- list.files(result_dir, pattern = "*rds", full.names = TRUE)
+  
+  map_dfr(res_files, function(fname) {
+    tmp <- readRDS(fname)
+    
+    # Wenn session fehlt oder NULL → überspringen
+    if (!("session" %in% names(tmp)) || is.null(tmp$session)) {
+      return(NULL)
+    }
+    
+    # Prüfe, ob session die erwarteten Spalten enthält
+    needed <- c("p_id", "time_started", "complete", "current_time", "jaj.ability", "bds.score")
+    have <- intersect(names(tmp$session), needed)
+    
+    # Wenn keine dieser Spalten vorhanden sind → überspringen
+    if (length(have) == 0) {
+      return(NULL)
+    }
+    
+    # Erzeuge sicheres DataFrame: fehlende Spalten als NA ergänzen
+    session <- tmp$session[have]
+    for (missing in setdiff(needed, have)) {
+      session[[missing]] <- NA
+    }
+    
+    session <- as.data.frame(session)
+    
+    # Nur, wenn tatsächlich Zeilen vorhanden
+    if (nrow(session) == 0) {
+      return(NULL)
+    }
+    
+    return(session)
+  }) %>%
+    distinct() %>%
+    as_tibble()
+}
+
+setup_workspace(result_dir)
+
+
+
 
 # Define UI
 ui <- fluidPage(theme = shinytheme("yeti"),
