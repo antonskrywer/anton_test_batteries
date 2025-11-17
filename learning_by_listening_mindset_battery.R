@@ -44,7 +44,8 @@ id_page <- function(language= "de"){
   if(language == "de"){
     psychTestR::join(
       psychTestR::text_input_page(
-        "Bitte gib hier Deine Matrikelnummer als ID ein",
+        label = "id",
+        prompt = "Bitte gib hier Deine Matrikelnummer als ID ein",
         placeholder = "z.B. 7846378"
       ))
   }
