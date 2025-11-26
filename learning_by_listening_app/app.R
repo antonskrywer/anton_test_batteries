@@ -16,6 +16,8 @@ path_mindset <- "/srv/shiny_server/learning_by_listening/mindset/output/results/
 files_wm <- list.files(path_wm, pattern = "\\.rds$", full.names = TRUE)
 files_mindset <- list.files(path_mindset, pattern = "\\.rds$", full.names = TRUE)
 data_wm <- map_df(files_wm, readRDS)
+data_wm <- data_wm %>%
+  mutate(id = session.p_id)
 data_mindset <- map_df(files_mindset, readRDS)
 
 data <- left_join(data_wm, data_mindset, by = "id")
