@@ -5,29 +5,44 @@ library(shinythemes)
 library(tidyverse)
 library(purrr)
 
-# data_wm <- read.csv("data_app/wm_24_11.csv", stringsAsFactors = FALSE)
-# data_wm <- data_wm %>% 
-#   mutate(id = session.p_id)
-# data_mindset <- read.csv("data_app/mindset_24_11.csv", stringsAsFactors = FALSE)
 
+path_wm <- "C:/Users/a_schreiber/Nextcloud/anton_test_batteries/learning_by_listening_app/learning_by_listening/WM/output/results/"
+path_mindset <- "C:/Users/a_schreiber/Nextcloud/anton_test_batteries/learning_by_listening_app/learning_by_listening/mindset/output/results/"
 
-path_wm <- "/srv/shiny_server/learning_by_listening/WM/output/results/"
-path_mindset <- "/srv/shiny_server/learning_by_listening/mindset/output/results/"
 files_wm <- list.files(path_wm, pattern = "\\.rds$", full.names = TRUE)
 files_mindset <- list.files(path_mindset, pattern = "\\.rds$", full.names = TRUE)
-data_wm <- map_df(files_wm, readRDS)
-data_wm <- data_wm %>%
-  mutate(id = session.p_id)
-data_mindset <- map_df(files_mindset, readRDS)
+extract_wm <- function(file) {
+  
+  x <- readRDS(file)
+  
+  tibble(
+    id = x$session$p_id,
+    BDS.score = x$BDS$score,
+    JAJ.ability = x$JAJ$ability
+  )
+}
+
+data_mindset <- map_df(files_wm, extract_wm)
+extract_mindset <- function(file) {
+  
+  x <- readRDS(file)
+  
+  tibble(
+    id = x$session$p_id,
+    TOM.Incremental = x$TOM$Incremental,
+    TOM.Entitiy = x$TOM$Entity
+  )
+}
+
+data_wm <- map_df(files_wm, extract_wm)
+data_mindset <- map_df(files_mindset, extract_mindset)
 
 data <- left_join(data_wm, data_mindset, by = "id")
 
+
 cols_wm <- c("BDS.score", "JAJ.ability")
 
-cols_mindset <- c(
-  "TOM.Incremental",
-  "TOM.Entity"
-)
+cols_mindset <- c("TOM.Incremental", "TOM.Entity")
 
 # Define UI
 ui <- fluidPage(theme = shinytheme("yeti"),
