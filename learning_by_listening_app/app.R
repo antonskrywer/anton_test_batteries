@@ -6,8 +6,8 @@ library(tidyverse)
 library(purrr)
 
 
-path_wm <- "C:/Users/a_schreiber/Nextcloud/anton_test_batteries/learning_by_listening_app/learning_by_listening/WM/output/results/"
-path_mindset <- "C:/Users/a_schreiber/Nextcloud/anton_test_batteries/learning_by_listening_app/learning_by_listening/mindset/output/results/"
+path_wm <- "/srv/shiny-server/learning_by_listening/WM/output/results/"
+path_mindset <- "/srv/shiny-server/learning_by_listening/mindset/output/results/"
 
 files_wm <- list.files(path_wm, pattern = "\\.rds$", full.names = TRUE)
 files_mindset <- list.files(path_mindset, pattern = "\\.rds$", full.names = TRUE)
@@ -28,7 +28,7 @@ extract_mindset <- function(file) {
   x <- readRDS(file)
   
   tibble(
-    id = x$session$p_id,
+    id = x$id,
     TOM.Incremental = x$TOM$Incremental,
     TOM.Entitiy = x$TOM$Entity
   )
@@ -47,8 +47,8 @@ cols_mindset <- c("TOM.Incremental", "TOM.Entity")
 # Define UI
 ui <- fluidPage(theme = shinytheme("yeti"),
                 navbarPage(
-                  "Working Memory Monitor",
-                  tabPanel("WM Result",
+                  "Learning By Listening Monitor",
+                  tabPanel("Results",
                            sidebarPanel(
                              selectInput(
                                "construct",
