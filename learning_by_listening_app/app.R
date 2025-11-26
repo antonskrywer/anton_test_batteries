@@ -30,7 +30,7 @@ extract_mindset <- function(file) {
   tibble(
     id = x$id,
     TOM.Incremental = x$TOM$Incremental,
-    TOM.Entitiy = x$TOM$Entity
+    TOM.Entity = x$TOM$Entity
   )
 }
 
