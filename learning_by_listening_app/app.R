@@ -6,13 +6,16 @@ library(tidyverse)
 library(purrr)
 
 
-path_wm <- "/srv/shiny-server/learning_by_listening/WM/output/results/"
-path_mindset <- "/srv/shiny-server/learning_by_listening/mindset/output/results/"
-
+# path_wm <- "/srv/shiny-server/learning_by_listening/WM/output/results/"
+# path_mindset <- "/srv/shiny-server/learning_by_listening/mindset/output/results/"
+# path_miq <- "/srv/shiny-server/learning_by_listening/mindset/output/results/"
+path_wm <- "/Users/a_schreiber/Nextcloud/anton_test_batteries/learning_by_listening_app/WM/output/results/"
+path_mindset <- "/Users/a_schreiber/Nextcloud/anton_test_batteries/learning_by_listening_app/mindset/output/results/"
+path_miq <- "/Users/a_schreiber/Nextcloud/anton_test_batteries/learning_by_listening_app/MIQ/output/results/"
 
 files_wm <- list.files(path_wm, pattern = "\\.rds$", full.names = TRUE)
 files_mindset <- list.files(path_mindset, pattern = "\\.rds$", full.names = TRUE)
-files_miq <- list.files(path_mindset, pattern = "\\.rds$", full.names = TRUE)
+files_miq <- list.files(path_miq, pattern = "\\.rds$", full.names = TRUE)
 extract_wm <- function(file) {
   
   x <- readRDS(file)
@@ -29,7 +32,7 @@ extract_mindset <- function(file) {
   x <- readRDS(file)
   
   tibble(
-    id = x$id,
+    id = x$results$id,
     TOM.Incremental = x$TOM$Incremental,
     TOM.Entity = x$TOM$Entity
   )
@@ -39,8 +42,8 @@ extract_miq <- function(file) {
   x <- readRDS(file)
   
   tibble(
-    id = x$id,
-    MIQ.Ability = x$MIQ$Ability
+    id = x$results$id,
+    MIQ.Ability = x$MIQ$ability
   )
 }
 data_wm <- map_df(files_wm, extract_wm)
@@ -93,33 +96,43 @@ server <- function(input, output, session) {
       mutate(id = trimws(as.character(id))) %>%
       filter(id == id_input)
   })
+  
+  # all_subset: benutze 'data' (deinen zusammengeführten data frame), nicht 'df'
   all_subset <- reactive({
-    if(input$construct == "wm") {
-      df %>% select(all_of(cols_wm))
-    } else if(input$construct == "tom") {
-      df %>% select(all_of(cols_mindset))
-    } else {
-      df %>% select(all_of(cols_miq))
-    }
-  })
-  selected_subset <- reactive({
-    df <- selected_rows()
+    req(input$construct)  # sicherstellen, dass Input existiert
     
-    if(input$construct == "wm") {
-      df %>% select(all_of(cols_wm))
-    } else if(input$construct == "tom") {
-      df %>% select(all_of(cols_mindset))
+    if (input$construct == "wm") {
+      data %>% select(all_of(cols_wm))
+    } else if (input$construct == "tom") {
+      data %>% select(all_of(cols_mindset))
     } else {
-      df %>% select(all_of(cols_miq))
+      data %>% select(all_of(cols_miq))
     }
   })
+  
+  # entferne browser() im Produktiv-Code
+  # browser()
+  
+  selected_subset <- reactive({
+    data_sel <- selected_rows()  # lokaler Name 'data_sel' vermeidet Verwirrung
+    
+    if (input$construct == "wm") {
+      data_sel %>% select(all_of(cols_wm))
+    } else if (input$construct == "tom") {
+      data_sel %>% select(all_of(cols_mindset))
+    } else {
+      data_sel %>% select(all_of(cols_miq))
+    }
+  })
+  
   output$table <- renderTable({
     selected_subset()
   })
+  
   output$plots_ui <- renderUI({
-    df <- all_subset()
+    df_sub <- all_subset()
     
-    plot_output_list <- lapply(names(df), function(varname) {
+    plot_output_list <- lapply(names(df_sub), function(varname) {
       plotname <- paste0("plot_", varname)
       plotOutput(plotname, height = 300)
     })
@@ -129,22 +142,22 @@ server <- function(input, output, session) {
   
   # 5) Generiere die Plots serverseitig
   observe({
-    df <- all_subset()
+    df_sub <- all_subset()
     
-    lapply(names(df), function(varname) {
+    lapply(names(df_sub), function(varname) {
       plotname <- paste0("plot_", varname)
       
       output[[plotname]] <- renderPlot({
-        x <- df[[varname]]
+        x <- df_sub[[varname]]
         person_data <- selected_rows()
         if (nrow(person_data) > 0 && varname %in% names(person_data)) {
           person_value <- person_data[[varname]]
         } else {
           person_value <- NA
         }
-
+        
         hist(x,
-             main = paste("Histogramm:", varname, "In rot siehst Du Deinen Wert im Vergleich zur Gruppe"),
+             main = paste("Histogramm:", varname, "— In rot siehst Du Deinen Wert im Vergleich zur Gruppe"),
              xlab = varname,
              breaks = 20)
         if (!is.na(person_value)) {
@@ -154,6 +167,7 @@ server <- function(input, output, session) {
     })
   })
 }
+
 
  # server
 
