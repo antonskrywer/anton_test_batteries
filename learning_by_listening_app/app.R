@@ -9,8 +9,10 @@ library(purrr)
 path_wm <- "/srv/shiny-server/learning_by_listening/WM/output/results/"
 path_mindset <- "/srv/shiny-server/learning_by_listening/mindset/output/results/"
 
+
 files_wm <- list.files(path_wm, pattern = "\\.rds$", full.names = TRUE)
 files_mindset <- list.files(path_mindset, pattern = "\\.rds$", full.names = TRUE)
+files_miq <- list.files(path_mindset, pattern = "\\.rds$", full.names = TRUE)
 extract_wm <- function(file) {
   
   x <- readRDS(file)
@@ -22,7 +24,6 @@ extract_wm <- function(file) {
   )
 }
 
-data_mindset <- map_df(files_wm, extract_wm)
 extract_mindset <- function(file) {
   
   x <- readRDS(file)
@@ -33,16 +34,28 @@ extract_mindset <- function(file) {
     TOM.Entity = x$TOM$Entity
   )
 }
-
+extract_miq <- function(file) {
+  
+  x <- readRDS(file)
+  
+  tibble(
+    id = x$id,
+    MIQ.Ability = x$MIQ$Ability
+  )
+}
 data_wm <- map_df(files_wm, extract_wm)
 data_mindset <- map_df(files_mindset, extract_mindset)
+data_miq <- map_df(files_miq, extract_miq)
+df_list <- list(data_wm, data_mindset, data_miq)
 
-data <- left_join(data_wm, data_mindset, by = "id")
+data <- reduce(df_list, left_join, by = "id")
 
 
 cols_wm <- c("BDS.score", "JAJ.ability")
 
 cols_mindset <- c("TOM.Incremental", "TOM.Entity")
+
+cols_miq <- c("MIQ.Ability")
 
 # Define UI
 ui <- fluidPage(theme = shinytheme("yeti"),
@@ -54,7 +67,8 @@ ui <- fluidPage(theme = shinytheme("yeti"),
                                "construct",
                                "Wähle einen Datensatz:",
                                choices = c("WM-Daten" = "wm" ,
-                                           "Mindset-Daten" = "tom")
+                                           "Mindset-Daten" = "tom",
+                                           "Intelligenz-Daten" = "miq")
                              ),
                              
                              textInput("txt1", "Gib Deine Matrikelnummer ein:")
@@ -80,10 +94,12 @@ server <- function(input, output, session) {
       filter(id == id_input)
   })
   all_subset <- reactive({
-    if (input$construct == "wm") {
-      data %>% select(all_of(cols_wm))
+    if(input$construct == "wm") {
+      df %>% select(all_of(cols_wm))
+    } else if(input$construct == "tom") {
+      df %>% select(all_of(cols_mindset))
     } else {
-      data %>% select(all_of(cols_mindset))
+      df %>% select(all_of(cols_miq))
     }
   })
   selected_subset <- reactive({
@@ -91,8 +107,10 @@ server <- function(input, output, session) {
     
     if(input$construct == "wm") {
       df %>% select(all_of(cols_wm))
-    } else {
+    } else if(input$construct == "tom") {
       df %>% select(all_of(cols_mindset))
+    } else {
+      df %>% select(all_of(cols_miq))
     }
   })
   output$table <- renderTable({
