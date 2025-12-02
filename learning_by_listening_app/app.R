@@ -64,7 +64,7 @@ cols_miq <- c("MIQ.Ability")
 ui <- fluidPage(theme = shinytheme("yeti"),
                 navbarPage(
                   "Learning By Listening Monitor",
-                  tabPanel("Results",
+                  tabPanel("Raw Results",
                            sidebarPanel(
                              selectInput(
                                "construct",
@@ -82,7 +82,28 @@ ui <- fluidPage(theme = shinytheme("yeti"),
                              uiOutput("plots_ui")
                            )
                            
-                  )
+                  ),
+                  tabPanel("Multivariate Results",
+                           sidebarPanel(
+                             selectInput("covariate1",
+                                         "Wähle eine Variable:",
+                                         choices = c("BDS-Score" = "BDS.score" ,
+                                                     "JAJ-Score" = "JAJ.ability",
+                                                     "Growth-Mindset" = "TOM.Incremental",
+                                                     "Fixed-Mindset" = "TOM.Entity",
+                                                     "Intelligenz" = "MIQ.Ability")),
+                             selectInput("covariate2",
+                                         "Wähle eine zweite Variable:",
+                                         c("BDS-Score" = "BDS.score" ,
+                                           "JAJ-Score" = "JAJ.ability",
+                                           "Growth-Mindset" = "TOM.Incremental",
+                                           "Fixed-Mindset" = "TOM.Entity",
+                                           "Intelligenz" = "MIQ.Ability")),
+                           ),
+                           mainPanel(
+                             h1("Streudiagramm"),
+                             plotOutput("corplot_ui")
+                           ))
 )) # fluidPage
 
 
@@ -138,6 +159,19 @@ server <- function(input, output, session) {
     })
     
     tagList(plot_output_list)
+  })
+  scatter_data <- reactive({
+    req(input$covariate1, input$covariate2)
+    data[, c(input$covariate1, input$covariate2)]
+  })
+  
+  ## --- Plot rendern ---
+  output$corplot_ui <- renderPlot({
+    df <- scatter_data()
+    ggplot(df, aes(x = df[[1]], y = df[[2]])) +
+      geom_point() +
+      geom_smooth(method = "lm")
+
   })
   
   # 5) Generiere die Plots serverseitig
