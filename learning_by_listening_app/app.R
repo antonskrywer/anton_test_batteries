@@ -85,6 +85,7 @@ ui <- fluidPage(theme = shinytheme("yeti"),
                   ),
                   tabPanel("Multivariate Results",
                            sidebarPanel(
+                             #textInput("txt1", "Gib Deine Matrikelnummer ein:"),
                              selectInput("covariate1",
                                          "Wähle eine Variable:",
                                          choices = c("BDS-Score" = "BDS.score" ,
@@ -166,14 +167,37 @@ server <- function(input, output, session) {
   })
   
   ## --- Plot rendern ---
+  # output$corplot_ui <- renderPlot({
+  #   df <- scatter_data()
+  #   ggplot(df, aes_string(x = input$covariate1, 
+  #                         y = input$covariate2)) +
+  #     geom_point() +
+  #     geom_smooth(method = "lm") +
+  #     geom_point(                              
+  #       data = df_person,                      # einzelner Punkt
+  #       aes_string(x = input$covariate1, 
+  #                  y = input$covariate2),
+  #       color = "red",
+  #       size = 4
+  #     )
+  # 
+  # })
   output$corplot_ui <- renderPlot({
     df <- scatter_data()
-    ggplot(df, aes(x = df[[1]], y = df[[2]])) +
-      geom_point() +
-      geom_smooth(method = "lm")
-
+    df_person <- selected_rows()  # Datensatz der ausgewählten Person
+    
+    ggplot(df, aes_string(x = input$covariate1, 
+                          y = input$covariate2)) +
+      geom_point(alpha = 0.7) +                # alle Punkte
+      geom_smooth(method = "lm") +             # Regressionslinie
+      geom_point(                              
+        data = df_person,                      # einzelner Punkt
+        aes_string(x = input$covariate1, 
+                   y = input$covariate2),
+        color = "red",
+        size = 4
+      )
   })
-  
   # 5) Generiere die Plots serverseitig
   observe({
     df_sub <- all_subset()
@@ -193,7 +217,7 @@ server <- function(input, output, session) {
         hist(x,
              main = paste("Histogramm:", varname, "— In rot siehst Du Deinen Wert im Vergleich zur Gruppe"),
              xlab = varname,
-             breaks = 20)
+             breaks = 30)
         if (!is.na(person_value)) {
           abline(v = person_value, col = "red", lwd = 2)
         }
