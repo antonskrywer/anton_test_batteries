@@ -12,10 +12,13 @@ library(purrr)
 path_wm <- "/Users/a_schreiber/Nextcloud/anton_test_batteries/learning_by_listening_app/WM/output/results/"
 path_mindset <- "/Users/a_schreiber/Nextcloud/anton_test_batteries/learning_by_listening_app/mindset/output/results/"
 path_miq <- "/Users/a_schreiber/Nextcloud/anton_test_batteries/learning_by_listening_app/MIQ/output/results/"
+path_gms <- "/Users/a_schreiber/Nextcloud/anton_test_batteries/learning_by_listening_app/GMS/output/results/"
 
 files_wm <- list.files(path_wm, pattern = "\\.rds$", full.names = TRUE)
 files_mindset <- list.files(path_mindset, pattern = "\\.rds$", full.names = TRUE)
 files_miq <- list.files(path_miq, pattern = "\\.rds$", full.names = TRUE)
+files_gms <- list.files(path_gms, pattern = "\\.rds$", full.names = TRUE)
+
 extract_wm <- function(file) {
   
   x <- readRDS(file)
@@ -46,10 +49,27 @@ extract_miq <- function(file) {
     MIQ.Ability = x$MIQ$ability
   )
 }
+
+extract_gms <- function(file) {
+  
+  x <- readRDS(file)
+  
+  tibble(
+    id = x$results$id,
+    GMS.general = x$GMS$General,
+    GMS.emotions = x$GMS$Emotions,
+    GMS.singing_abilities = x$GMS$`Singing Abilities`,
+    GMS.perceptual_abilities = x$GMS$`Perceptual Abilities`,
+    GMS.musical_training = x$GMS$`Musical Training`,
+  )
+}
+
 data_wm <- map_df(files_wm, extract_wm)
 data_mindset <- map_df(files_mindset, extract_mindset)
 data_miq <- map_df(files_miq, extract_miq)
-df_list <- list(data_wm, data_mindset, data_miq)
+data_gms <- map_df(files_gms, extract_gms)
+
+df_list <- list(data_wm, data_mindset, data_miq, data_gms)
 
 data <- reduce(df_list, left_join, by = "id")
 
@@ -60,6 +80,7 @@ cols_mindset <- c("TOM.Incremental", "TOM.Entity")
 
 cols_miq <- c("MIQ.Ability")
 
+cols_gms <- c("GMS.general", "GMS.emotions", "GMS.singing_abilities", "GMS.perceptual_abilities", "GMS.musical_training")
 # Define UI
 ui <- fluidPage(theme = shinytheme("yeti"),
                 navbarPage(
@@ -71,7 +92,8 @@ ui <- fluidPage(theme = shinytheme("yeti"),
                                "Wähle einen Datensatz:",
                                choices = c("WM-Daten" = "wm" ,
                                            "Mindset-Daten" = "tom",
-                                           "Intelligenz-Daten" = "miq")
+                                           "Intelligenz-Daten" = "miq",
+                                           "Musikalische-Erfahrung-Daten" = "gms")
                              ),
                              
                              textInput("txt1", "Gib Deine Matrikelnummer ein:")
@@ -92,14 +114,20 @@ ui <- fluidPage(theme = shinytheme("yeti"),
                                                      "JAJ-Score" = "JAJ.ability",
                                                      "Growth-Mindset" = "TOM.Incremental",
                                                      "Fixed-Mindset" = "TOM.Entity",
-                                                     "Intelligenz" = "MIQ.Ability")),
+                                                     "Intelligenz" = "MIQ.Ability",
+                                                     "Musikalische Erfahrenheit" = "GMS.general",
+                                                     "Musikalisches Training" = "GMS.musical_training",
+                                                     "Musikalische Wahrnehmungsfähigkeiten" = "GMS.perceptual_abilities")),
                              selectInput("covariate2",
                                          "Wähle eine zweite Variable:",
                                          c("BDS-Score" = "BDS.score" ,
                                            "JAJ-Score" = "JAJ.ability",
                                            "Growth-Mindset" = "TOM.Incremental",
                                            "Fixed-Mindset" = "TOM.Entity",
-                                           "Intelligenz" = "MIQ.Ability")),
+                                           "Intelligenz" = "MIQ.Ability",
+                                           "Musikalische Erfahrenheit" = "GMS.general",
+                                           "Musikalisches Training" = "GMS.musical_training",
+                                           "Musikalische Wahrnehmungsfähigkeiten" = "GMS.perceptual_abilities")),
                            ),
                            mainPanel(
                              h1("Streudiagramm"),
@@ -127,6 +155,8 @@ server <- function(input, output, session) {
       data %>% select(all_of(cols_wm))
     } else if (input$construct == "tom") {
       data %>% select(all_of(cols_mindset))
+    } else if (input$construct == "gms") {
+      data %>% select(all_of(cols_gms))
     } else {
       data %>% select(all_of(cols_miq))
     }
@@ -142,6 +172,8 @@ server <- function(input, output, session) {
       data_sel %>% select(all_of(cols_wm))
     } else if (input$construct == "tom") {
       data_sel %>% select(all_of(cols_mindset))
+    } else if (input$construct == "gms") {
+      data %>% select(all_of(cols_gms))
     } else {
       data_sel %>% select(all_of(cols_miq))
     }
