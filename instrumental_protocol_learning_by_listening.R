@@ -2,21 +2,52 @@ library(psychTestR)
 library(htmltools)
 library(shiny)
 
-# dict_raw <- tibble::tibble(key = c("MLP_0001_prompt", "MLP_0001_choice1", "MLP_0001_choice2"),
-#                            en = c("Was ist los?", "ja", "nein"))
-# 
-# 
-# dict <- psychTestR::i18n_dict$new(dict_raw)
-# 
-# page <- psychTestR::one_button_page(
-#                             psychTestR::i18n("MLP_0001_prompt"),
-#                             )
-# final <- psychTestR::final_page("fin")
-# 
-# timeline <- join(
-#     page,
-#     final)
-# make_test(timeline, opt = demo_options(languages = "en"))
+dict_raw <- read.csv2("learning_protocol_dict_utf8.csv")
+dict <- i18n_dict$new(dict_raw)
+
+
+
+
+protocol_timeline <- new_timeline(join(
+  one_button_page(
+    i18n("MLP_welcome_prompt"),
+    button_text = i18n("CONTINUE")),
+  one_button_page(
+    i18n("INFORMED_CONSENT"),
+    button_text = i18n("CONTINUE")),
+  NAFC_page("filter_id",
+            i18n("MLP_0001_prompt"), 
+            c(i18n("MLP_YES"), i18n("MLP_NO"))),
+            conditional(test = function(state, ...) {
+              ans <- answer(state)
+              ans == i18n("MLPYES")
+            },
+            logic = join(text_input_page("get_id",
+                  i18n("GET_ID"),
+                  placeholder = i18n("ID_PLACEHOLDER")),
+            NAFC_page("holiday",
+                i18n("MLP_0002_prompt"), 
+                c(i18n("MLP_YES"), i18n("MLP_NO"))),
+            one_button_page(
+              i18n("MLP_0003_prompt"),
+              button_text = i18n("CONTINUE")),
+            text_input_page("instrument",
+                              i18n("MLP_0004_prompt")),
+            text_input_page("age",
+                            i18n("MLP_0005_prompt")),
+            text_input_page("learning_time",
+                            i18n("MLP_0006_prompt"),
+                            placeholder = i18n("MLP_0006_placeholder")))),
+            join(
+            one_button_page(
+                        body = i18n("MLP_0007_prompt"),
+                        button_text = i18n("CONTINUE")),
+  final_page("final")
+  )),
+  dict = dict
+)
+make_test(protocol_timeline, opt = test_options(title = "Learning Log", admin_password = "test", languages = "de"))
+
 welcome_page <- one_button_page(
   div(
     h1("Lernprotokoll für Instrumentalgruppe"),
