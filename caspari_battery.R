@@ -28,7 +28,7 @@ consent_page <- function(dict = general_dict, variant = NULL){
   psychTestR::new_timeline(
     psychTestR::checkbox_page(
       label = "consent",
-      prompt = shiny::includeHTML("consent_schreiber.html"),
+      prompt = shiny::includeHTML("consent_caspari.html"),
       labels = list(psychTestR::i18n("MPIAE_CONSENT_PROMPT")),
       choices = c("choice1"),
       javascript = "checkboxes = $('input:checkbox'); checkboxes.slice(checkboxes.length - 1, checkboxes.length).click(function() { checkboxes.slice(0, checkboxes.length - 1).prop('checked', '') }); checkboxes.slice(0, checkboxes.length - 1).click(function() { checkboxes.slice(checkboxes.length - 1, checkboxes.length).prop('checked', '') });",
@@ -142,16 +142,30 @@ caspari_battery  <- function(title = "Musik bewegt – Dich auch?",
     #   next_button_text = "Weiter"
     # ),
     psychTestR::get_p_id(prompt = "Bitte geben Sie Ihre ID ein.",
-                         placeholder = "z.B. 184730387"),
-    psyquest::CHD(),
+                         placeholder = "z.B. 00MNER05",
+                         validate = function(answer, ...) {
+                           
+                           # Prüfe: genau 8 Zeichen + Format 2 Zahlen, 4 Buchstaben, 2 Zahlen
+                           pattern <- "^[0-9]{2}[A-Za-z]{4}[0-9]{2}$"
+                           
+                           if (grepl(pattern, answer)) {
+                             TRUE
+                           } else {
+                             "Der Code muss folgendes Format haben: 2 Ziffern, 4 Buchstaben, 2 Ziffern (z.B. 12ABCD34)."
+                           }
+                         }
+                         ),
     psychTestR::dropdown_page(
       label = "CHD_addition",
-      prompt = shiny::p("Auf welche Schule geht Ihr Kind?"),
-      choices = as.character(1:10),
+      prompt = shiny::div(p(strong("Welche Schule besucht Ihr Kind?")),  
+                          p("Bitte geben Sie hier die Ziffer ein, die Ihnen in den Teilnehmendeninformationen mitgeteilt wurde und die Sie auch in Ihrem individuellen Code verwendet haben.")),
+      choices = c("01", "02", "03", "04", "05", "06", "07", "08", "09", "10"),
       save_answer = T,
       next_button_text = "Weiter"
     ),
-    psyquest::CMS(language = "de_f"),
+    psyquest::CHD(age_scale = "Birth Date"),
+    psyquest::CMS(language = "de_f", 
+                  with_extra_scales = T),
     psyquest::BFC(language = "de_f"),
     # psychTestR::volume_calibration_page(
     #   prompt = shiny::div(
@@ -162,9 +176,13 @@ caspari_battery  <- function(title = "Musik bewegt – Dich auch?",
     psyquest::GMS(subscales = c(
       "Musical Training"),
       language = "de_f"),
+    psychTestR::one_button_page(
+      body = shiny::p("Nun würden wir Sie gerne um Angaben zu",
+                      strong("Ihrer Person"), "bitten."),
+      button_text = "Weiter"
+    ),
     psyquest::DEG(
-      subscales = c("Age",
-                    "Gender",
+      subscales = c("Gender",
                     "School Degree",
                     "Vocational Qualification",
                     "Music Proficiency",
@@ -172,25 +190,26 @@ caspari_battery  <- function(title = "Musik bewegt – Dich auch?",
                     "Financial Employment Long",
                     "First Language",
                     "Second Language"),
-      language = "de_f",
+      language = "de_f", #language or languages?
       year_range = c(1950, 2016)),
+    psyquest::GMS(short_version = T, language = "de_f"),
     psychTestR::new_timeline(
       lottery_page(languages[1]),
       dict = dict
     ),
     psychTestR::text_input_page(label = "mail", 
-                                prompt = shiny::p("Hier können Sie Ihre E-Mail angeben"), 
+                                prompt = shiny::p("Wenn Sie an der Verlosung teilnehmen möchten, geben Sie bitte hier Ihre E‑Mail‑Adresse an:"), 
                                 placeholder = "maxmustermann@web.de"),
-    psychTestR::checkbox_page(label = "contact",
+    psychTestR::dropdown_page(label = "contact",
                               prompt = "Dürfen wir Ihre E-Mail Adresse verwenden, um Sie über weitere Studien zum Thema
                               Musikalität im Kindesalter zu kontaktieren? Diese Einwilligung können Sie jederzeit und ohne
                               Angabe von Gründen widerrufen.",
                               choices = c("Ja", "Nein"),
-                              trigger_button_text = "Weiter"),
-    psychTestR::checkbox_page(label = "further_information",
+                              next_button_text = "Weiter"),
+    psychTestR::dropdown_page(label = "further_information",
                               prompt = "Möchten Sie per E-Mail über die Ergebnisse dieser Studie informiert werden?",
                               choices = c("Ja", "Nein"),
-                              trigger_button_text = "Weiter"),
+                              next_button_text = "Weiter"),
     psychTestR::elt_save_results_to_disk(complete = T),
     final_page(languages[[1]]))
   psychTestR::make_test(
