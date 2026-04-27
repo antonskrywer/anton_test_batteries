@@ -223,14 +223,12 @@ caspari_battery  <- function(title = "Musik bewegt – Dich auch?",
     #     shiny::p(volume_prompt, style = "margin-left:20%;margin-right:20%;text-align:center")),
     #   url = "https://s3-eu-west-1.amazonaws.com/media.gold-msi.org/misc/audio/terminator.mp3",
     #   btn_play_prompt = volume_button, button_text = "Weiter"),
-    psyquest::GMS(subscales = c(
-      "Musical Training"),
-      language = "de_f"),
     psychTestR::one_button_page(
       body = shiny::p("Nun würden wir Sie gerne um Angaben zu",
                       strong("Ihrer Person"), "bitten."),
       button_text = "Weiter"
     ),
+    psyquest::GMS(configuration_filepath = "GMSI_shortest.csv", language = "de_f"),
     psyquest::DEG(
       subscales = c("Gender",
                     "School Degree",
@@ -243,7 +241,6 @@ caspari_battery  <- function(title = "Musik bewegt – Dich auch?",
                     "Qualification"),
       language = "de_f",
       year_range = c(1950, 2016)),
-    psyquest::GMS(configuration_filepath = "GMSI_shortest.csv", language = "de_f"),
     psychTestR::new_timeline(
       lottery_page(languages[1]),
       dict = dict
