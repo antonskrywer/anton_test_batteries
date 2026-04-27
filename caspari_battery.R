@@ -41,8 +41,55 @@ consent_page <- function(dict = general_dict, variant = NULL){
 }
 
 
-id_instruction <- function(language= "de"){
-  if(language == "de"){
+id_generation <- div(
+  
+  tags$head(
+    tags$style(HTML("
+      ul {
+        text-align: left;
+        margin-left: 20px;
+      }
+    "))
+  ),
+  
+  h2("Ihr individueller Code"),
+  
+  p("Bitte erstellen Sie Ihren individuellen Code mit insgesamt acht Zeichen. Der Code setzt sich
+    aus vier Teilen zusammen. Tragen Sie die Zeichen in genau dieser Reihenfolge ein:"),
+  
+  tags$pre(
+    style = "font-family: Arial, sans-serif;",
+    
+    HTML("•\tDie zwei Ziffern der Schule (siehe allgemeine Teilnehmendeninformation)\t\t    _ _\n"),
+    tags$span("Beispiel 00\t→\t00",
+              style = "font-size: 0.9em; font-style: italic;"),
+    
+    HTML("\n•\tDer erste und letzte Buchstabe des Vornamens Ihres Kindes\t\t\t    _ _\n"),
+    tags$span("Beispiel Martin\t→\tMN",
+              style = "font-size: 0.9em; font-style: italic;"),
+    
+    HTML("\n•\tDie beiden letzten Buchstaben des Nachnamens Ihres Kindes\t\t\t    _ _\n"),
+    tags$span("Beispiel Müller\t→\tER",
+              style = "font-size: 0.9em; font-style: italic;"),
+    
+    HTML("\n•\tDer Monat, in dem Ihr Kind geboren wurde (zweistellig)\t\t\t\t    _ _\n"),
+    tags$span("Beispiel Mai\t→\t05",
+              style = "font-size: 0.9em; font-style: italic;"),
+    
+    HTML("\nDer vollständige Code (Beispiel)\t    00MNER05")
+  ),
+  
+  p(
+    tags$strong("Der vollständige Code (Beispiel): "), 
+    "00MNER05"
+  ),
+  
+  p("Bitte achten Sie darauf, alle Angaben korrekt einzutragen. Der Code dient der anonymen Zuordnung der Daten."),
+  
+  p("Bitte geben Sie hier Ihre ID ein.")
+)
+id_instruction <- function(language= "de_f"){
+  if(language == "de_f"){
     psychTestR::join(
       psychTestR::one_button_page(
         shiny::includeHTML("caspari_id_page.html"),
@@ -59,8 +106,8 @@ id_instruction <- function(language= "de"){
 }
 
 
-welcome_page <- function(language= "de"){
-  if(language == "de"){
+welcome_page <- function(language= "de_f"){
+  if(language == "de_f"){
     psychTestR::join(
       psychTestR::one_button_page(
         shiny::includeHTML("caspari_welcome_page.html"),
@@ -77,8 +124,8 @@ welcome_page <- function(language= "de"){
   }
 }
 
-final_page <- function(language = "de"){
-  if(language == "de"){
+final_page <- function(language = "de_f"){
+  if(language == "de_f"){
     final_prompt <- shiny::div(shiny::h4("Sie können das Fenster jetzt schließen. Vielen Dank für Ihre Teilnahme!"))
     psychTestR::final_page(final_prompt)
   }
@@ -88,8 +135,8 @@ final_page <- function(language = "de"){
     
   }
 }
-lottery_page <- function(language= "de"){
-  if(language == "de"){
+lottery_page <- function(language= "de_f"){
+  if(language == "de_f"){
     psychTestR::join(
       psychTestR::one_button_page(
         shiny::includeHTML("caspari_lottery_page.html"),
@@ -110,7 +157,7 @@ caspari_battery  <- function(title = "Musik bewegt – Dich auch?",
                                documentation = "caspari_battery",
                                admin_password = "CHD",
                                researcher_email = "Tabea.Caspari@ae.mpg.de",
-                               languages = c("de", "en"),
+                               languages = c("de_f", "en"),
                                dict = psyquest::psyquest_dict,
                                ...) {
   if (languages[1] %in% c("de", "de_f")) {
@@ -130,10 +177,10 @@ caspari_battery  <- function(title = "Musik bewegt – Dich auch?",
       dict = dict
     ),
     consent_page(),
-    psychTestR::new_timeline(
-      id_instruction(languages[1]),
-      dict = dict
-    ),
+    # psychTestR::new_timeline(
+    #   id_instruction(languages[1]),
+    #   dict = dict
+    # ),
     # psychTestR::dropdown_page(
     #   label = "Klasse",
     #   prompt = "Wähle deine Klasse aus",
@@ -141,7 +188,7 @@ caspari_battery  <- function(title = "Musik bewegt – Dich auch?",
     #   save_answer = T,
     #   next_button_text = "Weiter"
     # ),
-    psychTestR::get_p_id(prompt = "Bitte geben Sie Ihre ID ein.",
+    psychTestR::get_p_id(prompt = id_generation,
                          placeholder = "z.B. 00MNER05",
                          validate = function(answer, ...) {
                            
@@ -163,9 +210,12 @@ caspari_battery  <- function(title = "Musik bewegt – Dich auch?",
       save_answer = T,
       next_button_text = "Weiter"
     ),
-    psyquest::CHD(age_scale = "Birth Date"),
+    psyquest::CHD(age_scale = "Birth Date",
+                  alt_intro = T,
+                  language = "de_f"),
     psyquest::CMS(language = "de_f", 
-                  with_extra_scales = T),
+                  with_extra_scales = T,
+                  alt_intro = T),
     psyquest::BFC(language = "de_f"),
     # psychTestR::volume_calibration_page(
     #   prompt = shiny::div(
@@ -189,10 +239,11 @@ caspari_battery  <- function(title = "Musik bewegt – Dich auch?",
                     "Life Circumstances",
                     "Financial Employment Long",
                     "First Language",
-                    "Second Language"),
-      language = "de_f", #language or languages?
+                    "Second Language",
+                    "Qualification"),
+      language = "de_f",
       year_range = c(1950, 2016)),
-    psyquest::GMS(short_version = T, language = "de_f"),
+    psyquest::GMS(configuration_filepath = "GMSI_shortest.csv", language = "de_f"),
     psychTestR::new_timeline(
       lottery_page(languages[1]),
       dict = dict

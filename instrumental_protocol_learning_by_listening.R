@@ -50,6 +50,7 @@ make_test(protocol_timeline, opt = test_options(title = "Learning Log", admin_pa
 
 welcome_page <- one_button_page(
   div(
+    img(src = "s3://media.dots.org/img/musik_bewegt_img.png"),
     h1("Lernprotokoll für Instrumentalgruppe"),
     p("Als Mitglied der Instrumentalgruppe sollst Du ein Stück Deiner Wahl auf einem Instrument Deiner Wahl lernen.
 Zum Prä-, Mid- oder Post-Test kannst Du die Performance insgesamt bewerten."),
@@ -57,6 +58,10 @@ Zum Prä-, Mid- oder Post-Test kannst Du die Performance insgesamt bewerten."),
     p(tags$em("Hinweis:"), "Wenn möglich, mache regelmäßig Audio- oder Videoaufnahmen, um später den Übeprozess zu analysieren.")
   ),
   button_text = "Weiter"
+)
+
+welcome_img <- div(
+  img(src = "s3://media.dots.org/img/musik_bewegt_img.png")
 )
 
 ethics_page <- one_button_page(
