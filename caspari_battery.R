@@ -154,9 +154,9 @@ lottery_page <- function(language= "de_f"){
 }
 
 caspari_battery  <- function(title = "Musik bewegt – Dich auch?",
-                               documentation = "caspari_battery",
-                               admin_password = "CHD",
-                               researcher_email = "Tabea.Caspari@ae.mpg.de",
+                               documentation = "musikbewegt_eltern_battery",
+                               admin_password = "musikbewegt",
+                               researcher_email = "kindermusik.studien.prj@ae.mpg.de",
                                languages = c("de_f", "en"),
                                dict = psyquest::psyquest_dict,
                                ...) {
@@ -245,19 +245,19 @@ caspari_battery  <- function(title = "Musik bewegt – Dich auch?",
       lottery_page(languages[1]),
       dict = dict
     ),
-    psychTestR::text_input_page(label = "mail", 
-                                prompt = shiny::p("Wenn Sie an der Verlosung teilnehmen möchten, geben Sie bitte hier Ihre E‑Mail‑Adresse an:"), 
-                                placeholder = "maxmustermann@web.de"),
-    psychTestR::dropdown_page(label = "contact",
-                              prompt = "Dürfen wir Ihre E-Mail Adresse verwenden, um Sie über weitere Studien zum Thema
-                              Musikalität im Kindesalter zu kontaktieren? Diese Einwilligung können Sie jederzeit und ohne
-                              Angabe von Gründen widerrufen.",
-                              choices = c("Ja", "Nein"),
-                              next_button_text = "Weiter"),
-    psychTestR::dropdown_page(label = "further_information",
-                              prompt = "Möchten Sie per E-Mail über die Ergebnisse dieser Studie informiert werden?",
-                              choices = c("Ja", "Nein"),
-                              next_button_text = "Weiter"),
+    # psychTestR::text_input_page(label = "mail", 
+    #                             prompt = shiny::p("Wenn Sie an der Verlosung teilnehmen möchten, geben Sie bitte hier Ihre E‑Mail‑Adresse an:"), 
+    #                             placeholder = "maxmustermann@web.de"),
+    # psychTestR::dropdown_page(label = "contact",
+    #                           prompt = "Dürfen wir Ihre E-Mail Adresse verwenden, um Sie über weitere Studien zum Thema
+    #                           Musikalität im Kindesalter zu kontaktieren? Diese Einwilligung können Sie jederzeit und ohne
+    #                           Angabe von Gründen widerrufen.",
+    #                           choices = c("Ja", "Nein"),
+    #                           next_button_text = "Weiter"),
+    # psychTestR::dropdown_page(label = "further_information",
+    #                           prompt = "Möchten Sie per E-Mail über die Ergebnisse dieser Studie informiert werden?",
+    #                           choices = c("Ja", "Nein"),
+    #                           next_button_text = "Weiter"),
     psychTestR::elt_save_results_to_disk(complete = T),
     final_page(languages[[1]]))
   psychTestR::make_test(
