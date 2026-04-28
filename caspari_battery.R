@@ -126,7 +126,19 @@ welcome_page <- function(language= "de_f"){
 
 final_page <- function(language = "de_f"){
   if(language == "de_f"){
-    final_prompt <- shiny::div(shiny::h4("Sie können das Fenster jetzt schließen. Vielen Dank für Ihre Teilnahme!"))
+    final_prompt <- shiny::div(
+      shiny::h2("Vielen Dank für Ihre Teilnahme!"),
+      
+      shiny::h3("Verlosung"),
+      
+      shiny::p(
+        "Als Dankeschön verlosen wir unter allen Teilnehmenden Geldpreise im Wert von 50 € (1×) sowie 25 € (2×). Wenn Sie an der Verlosung teilnehmen möchten, folgen Sie bitte diesem Link: ",
+        shiny::a(
+          href = "https://testing.musikpsychologie.de/musikbewegt_eltern_lottery/",
+          "Lotterie"
+        )
+      )
+    )
     psychTestR::final_page(final_prompt)
   }
   else{
@@ -241,10 +253,10 @@ caspari_battery  <- function(title = "Musik bewegt – Dich auch?",
                     "Qualification"),
       language = "de_f",
       year_range = c(1950, 2016)),
-    psychTestR::new_timeline(
-      lottery_page(languages[1]),
-      dict = dict
-    ),
+    # psychTestR::new_timeline(
+    #   lottery_page(languages[1]),
+    #   dict = dict
+    # ),
     # psychTestR::text_input_page(label = "mail", 
     #                             prompt = shiny::p("Wenn Sie an der Verlosung teilnehmen möchten, geben Sie bitte hier Ihre E‑Mail‑Adresse an:"), 
     #                             placeholder = "maxmustermann@web.de"),
@@ -276,4 +288,4 @@ caspari_battery  <- function(title = "Musik bewegt – Dich auch?",
                                    theme = shinythemes::shinytheme("yeti")))
 }
 
-caspari_battery()
+#caspari_battery()
