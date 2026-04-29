@@ -192,7 +192,7 @@ final_page <- function(language = "de_f"){
       shiny::h3("Verlosung"),
       
       shiny::p(
-        "Als Dankeschön verlosen wir unter allen Teilnehmenden Geldpreise im Wert von 50 € (1×) sowie 25 € (2×). Wenn Sie an der Verlosung teilnehmen möchten, folgen Sie bitte diesem Link: ",
+        "Als Dankeschön verlosen wir unter allen Teilnehmenden acht Geldpreise im Wert 25 €. Wenn Sie an der Verlosung teilnehmen möchten, folgen Sie bitte diesem Link: ",
         shiny::a(
           href = "https://testing.musikpsychologie.de/musikbewegt_eltern_lottery/",
           "Lotterie"
