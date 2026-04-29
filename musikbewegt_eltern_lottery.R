@@ -6,9 +6,9 @@ online_finish_page <- function(){
   prompt <- shiny::div(
     shiny::h3("Ein großes Dankeschön!"),
     shiny::p(
-      "Unter allen Teilnehmenden werden ein Geldpreis in Höhe von ", 
-      shiny::tags$b("50 € sowie zwei Geldpreise in Höhe von jeweils 25 € verlost."), 
-      "Die E-Mail-Adressen werden getrennt von den Umfragedaten gespeichert.",
+      "Unter allen Teilnehmenden werden acht Geldpreise ", 
+      shiny::tags$b("in Höhe von jeweils 25 € verlost."), 
+      "Bitte geben Sie hier Ihre E-Mail-Adresse ein, wenn Sie an der Verlosung teilnehmen möchten. Die E-Mail-Adressen werden getrennt von den Umfragedaten gespeichert.",
       "Wenn Sie nicht daran teilnehmen wollen, schließen Sie einfach den Browser-Tab.",
       "Eine Zuordnung Ihrer Daten ist somit ausgeschlossen. Viel Glück!", 
     style = "text-align:justify;display:block;width:60%;min-width:300px;")

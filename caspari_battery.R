@@ -39,55 +39,115 @@ consent_page <- function(dict = general_dict, variant = NULL){
     dict = dict)
   
 }
-
-
 id_generation <- div(
   
   tags$head(
     tags$style(HTML("
-      ul {
+      .code-box {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
         text-align: left;
-        margin-left: 20px;
+      }
+      .code-line {
+        margin-bottom: 8px;
+      }
+      .example {
+        font-size: 0.9em;
+        font-style: italic;
+        color: #555;
+        margin-left: 10px;
+      }
+      .final-code {
+        font-weight: bold;
+        font-size: 1.1em;
+        margin-top: 15px;
       }
     "))
   ),
   
-  h2("Ihr individueller Code"),
-  
-  p("Bitte erstellen Sie Ihren individuellen Code mit insgesamt acht Zeichen. Der Code setzt sich
-    aus vier Teilen zusammen. Tragen Sie die Zeichen in genau dieser Reihenfolge ein:"),
-  
-  tags$pre(
-    style = "font-family: Arial, sans-serif;",
-    
-    HTML("•\tDie zwei Ziffern der Schule (siehe allgemeine Teilnehmendeninformation)\t\t    _ _\n"),
-    tags$span("Beispiel 00\t→\t00",
-              style = "font-size: 0.9em; font-style: italic;"),
-    
-    HTML("\n•\tDer erste und letzte Buchstabe des Vornamens Ihres Kindes\t\t\t    _ _\n"),
-    tags$span("Beispiel Martin\t→\tMN",
-              style = "font-size: 0.9em; font-style: italic;"),
-    
-    HTML("\n•\tDie beiden letzten Buchstaben des Nachnamens Ihres Kindes\t\t\t    _ _\n"),
-    tags$span("Beispiel Müller\t→\tER",
-              style = "font-size: 0.9em; font-style: italic;"),
-    
-    HTML("\n•\tDer Monat, in dem Ihr Kind geboren wurde (zweistellig)\t\t\t\t    _ _\n"),
-    tags$span("Beispiel Mai\t→\t05",
-              style = "font-size: 0.9em; font-style: italic;"),
-    
-    HTML("\nDer vollständige Code (Beispiel)\t    00MNER05")
-  ),
-  
-  p(
-    tags$strong("Der vollständige Code (Beispiel): "), 
-    "00MNER05"
-  ),
-  
-  p("Bitte achten Sie darauf, alle Angaben korrekt einzutragen. Der Code dient der anonymen Zuordnung der Daten."),
-  
-  p("Bitte geben Sie hier Ihre ID ein.")
+  div(class = "code-box",
+      
+      h2("Ihr individueller Code"),
+      
+      p("Bitte erstellen Sie Ihren individuellen Code mit insgesamt acht Zeichen. 
+        Der Code setzt sich aus vier Teilen zusammen. Tragen Sie die Zeichen in genau dieser Reihenfolge ein:"),
+      
+      div(class = "code-line",
+          "Die zwei Ziffern der Schule (siehe allgemeine Teilnehmendeninformation)",
+          span("Beispiel: 00 → 00", class = "example")
+      ),
+      
+      div(class = "code-line",
+          "Der erste und letzte Buchstabe des Vornamens Ihres Kindes",
+          span("Beispiel: Martin → MN", class = "example")
+      ),
+      
+      div(class = "code-line",
+          "Die beiden letzten Buchstaben des Nachnamens Ihres Kindes",
+          span("Beispiel: Müller → ER", class = "example")
+      ),
+      
+      div(class = "code-line",
+          "Der Monat, in dem Ihr Kind geboren wurde (zweistellig)",
+          span("Beispiel: Mai → 05", class = "example")
+      ),
+      
+      div("Der vollständige Code (Beispiel): 00MNER05", class = "final-code"),
+      
+      p("Bitte achten Sie darauf, alle Angaben korrekt einzutragen. 
+        Der Code dient der anonymen Zuordnung der Daten."),
+      
+      p("Bitte geben Sie hier Ihren individuell erstellten Code ein.")
+  )
 )
+
+# id_generation <- div(
+#   
+#   tags$head(
+#     tags$style(HTML("
+#       ul {
+#         text-align: left;
+#         margin-left: 20px;
+#       }
+#     "))
+#   ),
+#   
+#   h2("Ihr individueller Code"),
+#   
+#   p("Bitte erstellen Sie Ihren individuellen Code mit insgesamt acht Zeichen. Der Code setzt sich
+#     aus vier Teilen zusammen. Tragen Sie die Zeichen in genau dieser Reihenfolge ein:"),
+#   
+#   tags$pre(
+#     style = "font-family: Arial, sans-serif;",
+#     
+#     HTML("•\tDie zwei Ziffern der Schule (siehe allgemeine Teilnehmendeninformation)\t\t    \n"),
+#     tags$span("Beispiel 00\t→\t00",
+#               style = "font-size: 0.9em; font-style: italic;"),
+#     
+#     HTML("\n•\tDer erste und letzte Buchstabe des Vornamens Ihres Kindes\t\t\t    \n"),
+#     tags$span("Beispiel Martin\t→\tMN",
+#               style = "font-size: 0.9em; font-style: italic;"),
+#     
+#     HTML("\n•\tDie beiden letzten Buchstaben des Nachnamens Ihres Kindes\t\t\t    \n"),
+#     tags$span("Beispiel Müller\t→\tER",
+#               style = "font-size: 0.9em; font-style: italic;"),
+#     
+#     HTML("\n•\tDer Monat, in dem Ihr Kind geboren wurde (zweistellig)\t\t\t\t    \n"),
+#     tags$span("Beispiel Mai\t→\t05",
+#               style = "font-size: 0.9em; font-style: italic;"),
+#     
+#     HTML("\nDer vollständige Code (Beispiel)\t    00MNER05")
+#   ),
+#   
+#   p(
+#     tags$strong("Der vollständige Code (Beispiel): "), 
+#     "00MNER05"
+#   ),
+#   
+#   p("Bitte achten Sie darauf, alle Angaben korrekt einzutragen. Der Code dient der anonymen Zuordnung der Daten."),
+#   
+#   p("Bitte geben Sie hier Ihren individuell erstellen Code ein.")
+# )
 id_instruction <- function(language= "de_f"){
   if(language == "de_f"){
     psychTestR::join(
@@ -137,7 +197,8 @@ final_page <- function(language = "de_f"){
           href = "https://testing.musikpsychologie.de/musikbewegt_eltern_lottery/",
           "Lotterie"
         )
-      )
+      ),
+      shiny::p("Vielen Dank. Sie können das Browser-Fenster jetzt schließen.")
     )
     psychTestR::final_page(final_prompt)
   }
@@ -202,6 +263,7 @@ caspari_battery  <- function(title = "Musik bewegt – Dich auch?",
     # ),
     psychTestR::get_p_id(prompt = id_generation,
                          placeholder = "z.B. 00MNER05",
+                         button_text = "Weiter",
                          validate = function(answer, ...) {
                            
                            # Prüfe: genau 8 Zeichen + Format 2 Zahlen, 4 Buchstaben, 2 Zahlen
@@ -223,6 +285,7 @@ caspari_battery  <- function(title = "Musik bewegt – Dich auch?",
       next_button_text = "Weiter"
     ),
     psyquest::CHD(age_scale = "Birth Date",
+                  subscales = setdiff(psyquest::get_subscales("CHD"), c("External Care", "Caretaker")),
                   alt_intro = T,
                   language = "de_f"),
     psyquest::CMS(language = "de_f", 
