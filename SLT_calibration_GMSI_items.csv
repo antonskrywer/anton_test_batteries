@@ -1,0 +1,15 @@
+MID,Item,Response,Negative
+AE_01,I spend a lot of my free time doing music-related activities.,1 Completely disagree / 2 Strongly disagree / 3 disagree / 4 Neither agree nor disagree / 5 agree / 6 Strongly agree / 7 Completely agree,FALSE
+AE_05,I often read or search the internet for things related to music.,1 Completely disagree / 2 Strongly disagree / 3 disagree / 4 Neither agree nor disagree / 5 agree / 6 Strongly agree / 7 Completely agree,FALSE
+AE_07,Music is kind of an addiction for me - I couldn't live without it.,1 Completely disagree / 2 Strongly disagree / 3 disagree / 4 Neither agree nor disagree / 5 agree / 6 Strongly agree / 7 Completely agree,FALSE
+MT_03,I have never been complimented for my talents as a musical performer.,1 Completely disagree / 2 Strongly disagree / 3 disagree / 4 Neither agree nor disagree / 5 agree / 6 Strongly agree / 7 Completely agree,TRUE
+MT_06,I can play _ musical instruments.,0 / 1 / 2 / 3 / 4 / 5 / 6 or more,FALSE
+MT_07,I would not consider myself a musician.,1 Completely disagree / 2 Strongly disagree / 3 disagree / 4 Neither agree nor disagree / 5 agree / 6 Strongly agree / 7 Completely agree,TRUE
+PA_01,I am able to judge whether someone is a good singer or not.,1 Completely disagree / 2 Strongly disagree / 3 disagree / 4 Neither agree nor disagree / 5 agree / 6 Strongly agree / 7 Completely agree,FALSE
+PA_03,I find it difficult to spot mistakes in a performance of a song even if I know the tune.,1 Completely disagree / 2 Strongly disagree / 3 disagree / 4 Neither agree nor disagree / 5 agree / 6 Strongly agree / 7 Completely agree,TRUE
+PA_06,I can tell when people sing or play out of time with the beat.,1 Completely disagree / 2 Strongly disagree / 3 disagree / 4 Neither agree nor disagree / 5 agree / 6 Strongly agree / 7 Completely agree,FALSE
+PA_07,I can tell when people sing or play out of tune.,1 Completely disagree / 2 Strongly disagree / 3 disagree / 4 Neither agree nor disagree / 5 agree / 6 Strongly agree / 7 Completely agree,FALSE
+PA_08,"When I sing, I have no idea whether I'm in tune or not.",1 Completely disagree / 2 Strongly disagree / 3 disagree / 4 Neither agree nor disagree / 5 agree / 6 Strongly agree / 7 Completely agree,TRUE
+BI_01,The instrument I play best (including voice) is:,NA,FALSE
+ST_01,What age did you start to play an instrument?,2 - 19 / I don't play any instrument.,NA
+AP_01,"Do you have absolute pitch? Absolute or perfect pitch is the ability to recognise and name an isolated musical tone without a reference tone, e.g. being able to say 'F#' if someone plays that note on the piano.",yes / no,FALSE
