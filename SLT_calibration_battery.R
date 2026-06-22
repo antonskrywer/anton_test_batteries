@@ -73,7 +73,25 @@ final_page <- function(language = "en"){
   }
 }
 
+### GEÄNDERT START — Prolific-IDs aus URL-Parametern erfassen ###
+get_param <- function(params, key) {
+  val <- params[[key]]
+  if (is.null(val)) NA_character_ else val
+}
 
+record_prolific_ids <- function() {
+  psychTestR::code_block(function(state, ...) {
+    url_params <- psychTestR::get_url_params(state)
+    print(url_params)
+    psychTestR::save_result(place = state, label = "prolific_pid",
+                            value = get_param(url_params, "PROLIFIC_PID"))
+    psychTestR::save_result(place = state, label = "prolific_study_id",
+                            value = get_param(url_params, "STUDY_ID"))
+    psychTestR::save_result(place = state, label = "prolific_session_id",
+                            value = get_param(url_params, "SESSION_ID"))
+  })
+}
+### GEÄNDERT ENDE ###
 
 
 SLT_calibration_battery  <- function(title = "Statistical Learning Test: Melody",
@@ -99,6 +117,7 @@ SLT_calibration_battery  <- function(title = "Statistical Learning Test: Melody"
       welcome_page(languages[1]),
       dict = dict
     ),
+    record_prolific_ids(),
     consent_page(),
     psychTestR::volume_calibration_page(
       prompt = shiny::div(
@@ -136,4 +155,4 @@ SLT_calibration_battery  <- function(title = "Statistical Learning Test: Melody"
                                    theme = shinythemes::shinytheme("yeti")))
 }
 
-SLT_calibration_battery()
+print(SLT_calibration_battery())
