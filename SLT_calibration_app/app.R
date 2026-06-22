@@ -14,11 +14,24 @@ files <- list.files(path, pattern = "\\.rds$", full.names = TRUE)
 
 
 extract_person_data <- function(file) {
-  x <- readRDS(file)
-  
+  x <- readRDS(file)  
+  session_time <- x$session$time_started
+  attr(session_time, "tzone") <- "UTC"
+  session_time <- lubridate::with_tz(session_time, "Europe/Berlin")
   # Basis-Tibble erstellen
   df_person <- tibble(
     id = x$session$p_id,
+    session_datetime = session_time,
+    session_date     = format(session_time, "%Y-%m-%d"),
+    session_clock    = format(session_time, "%H:%M:%S"),
+    session_duration_min = round(as.numeric(
+      difftime(x$session$current_time, x$session$time_started, units = "mins")
+    ), 1),
+    ### GEÄNDERT START — Prolific-URL-Parameter einlesen ###
+    prolific_pid         = if(!is.null(x$prolific_pid))        x$prolific_pid        else NA_character_,
+    prolific_study_id    = if(!is.null(x$prolific_study_id))   x$prolific_study_id   else NA_character_,
+    prolific_session_id  = if(!is.null(x$prolific_session_id)) x$prolific_session_id else NA_character_,
+    ### GEÄNDERT ENDE ###
     session.complete = if(!is.null(x$session$complete)) x$session$complete else NA,
     DEG.school_degree = x$DEG$`School Degree`,
     DEG.country_of_residence = x$DEG$`Country of Residence`,
@@ -160,6 +173,26 @@ ui <- fluidPage(
         h2("Streudiagramm mit Regressionslinie"),
         plotOutput("corplot_ui")
       )
+    ),
+    tabPanel(
+      "Prolific-Zuordnung",
+      sidebarPanel(
+        h3("Prolific-Matching"),
+        p("Ordnet die interne psychTestR-ID jeder Versuchsperson der",
+          "zugehörigen Prolific-ID (inkl. Study- und Session-ID) zu."),
+        downloadButton("download_prolific", "Tabelle als CSV exportieren")
+      ),
+      mainPanel(
+        h2("ID-Zuordnung (psychTestR ID <-> Prolific)"),
+        tableOutput("prolific_table"),
+        hr(),
+        h2("Duplikat-Prüfung"),
+        htmlOutput("duplicate_warning"),
+        conditionalPanel(
+          condition = "output.has_duplicates == true",
+          tableOutput("duplicate_table")
+        )
+      )
     )
   )
 )
@@ -180,11 +213,14 @@ server <- function(input, output, session) {
       n_complete <- sum(complete.cases(data[, c("SLT.score", cols_gms)]), na.rm = TRUE)
       n_incomplete <- n_total - n_complete
     }
-    
+    n_with_prolific <- sum(!is.na(data$prolific_pid) & data$prolific_pid != "")
+    erste_erhebung  <- format(min(data$session_datetime, na.rm = TRUE), "%d.%m.%Y %H:%M")
+    letzte_erhebung <- format(max(data$session_datetime, na.rm = TRUE), "%d.%m.%Y %H:%M")
     paste0(
       "<b>Gesamt-Datensätze (N):</b> ", n_total, "<br>",
       "<span style='color: green;'><b>Vollständig:</b> ", n_complete, "</span><br>",
-      "<span style='color: orange;'><b>Unvollständig:</b> ", n_incomplete, "</span>"
+      "<span style='color: orange;'><b>Unvollständig:</b> ", n_incomplete, "</span>",
+      "<span style='color: #337ab7;'><b>Mit Prolific-ID:</b> ", n_with_prolific, "</span>"
     )
   })
   
@@ -288,6 +324,71 @@ server <- function(input, output, session) {
         y = input$covariate2
       ) +
       theme_minimal(base_size = 14)
+  })
+  ### GEÄNDERT START — Prolific-Zuordnungstabelle + CSV-Download ###
+  output$prolific_table <- renderTable({
+    dup_ids <- duplicate_pids()$prolific_pid
+    
+    data %>%
+      arrange(desc(session_datetime)) %>%
+      select(id, session_date, session_clock, session_duration_min,
+             prolific_pid, prolific_study_id, prolific_session_id,
+             session.complete, SLT.score) %>%
+      mutate(duplicate = ifelse(prolific_pid %in% dup_ids, "⚠ JA", ""))
+  })
+  
+  output$download_prolific <- downloadHandler(
+    filename = function() paste0("prolific_mapping_", Sys.Date(), ".csv"),
+    content = function(file) {
+      mapping <- data %>%
+        select(id, prolific_pid, prolific_study_id, prolific_session_id,
+               session.complete, SLT.score)
+      write.csv(mapping, file, row.names = FALSE)
+    }
+  )
+  ### GEÄNDERT START — Duplikat-Erkennung (Server) ###
+
+  # Reaktive Liste aller Prolific-IDs, die mehr als einmal vorkommen
+  # (leere/NA-IDs werden ausgeschlossen, da lokale Testläufe sonst
+  #  fälschlich als "Duplikate" markiert würden)
+  duplicate_pids <- reactive({
+    data %>%
+      filter(!is.na(prolific_pid), prolific_pid != "") %>%
+      count(prolific_pid, name = "n_sessions") %>%
+      filter(n_sessions > 1)
+  })
+
+  # Flag, das die UI steuert (zeigt Tabelle nur, wenn Duplikate existieren)
+  output$has_duplicates <- reactive({
+    nrow(duplicate_pids()) > 0
+  })
+  outputOptions(output, "has_duplicates", suspendWhenHidden = FALSE)
+
+  # Textuelle Warnung über der Tabelle
+  output$duplicate_warning <- renderText({
+    n_dup <- nrow(duplicate_pids())
+    if (n_dup == 0) {
+      "<span style='color: green;'><b>Keine Duplikate gefunden.</b></span>"
+    } else {
+      paste0(
+        "<span style='color: red;'><b>Achtung:</b> ", n_dup,
+        " Prolific-ID(s) mit mehreren Sessions gefunden. ",
+        "Bitte vor der Analyse prüfen (z. B. doppelte Teilnahme, Reload).</span>"
+      )
+    }
+  })
+
+  # Detailtabelle: alle Sessions zu den betroffenen Prolific-IDs
+  output$duplicate_table <- renderTable({
+    dup_ids <- duplicate_pids()$prolific_pid
+    req(length(dup_ids) > 0)
+    
+    data %>%
+      filter(prolific_pid %in% dup_ids) %>%
+      select(id, session_date, session_clock, session_duration_min,
+             prolific_pid, prolific_study_id, prolific_session_id,
+             session.complete, SLT.score) %>%
+      arrange(prolific_pid, desc(session_datetime))
   })
 }
 
