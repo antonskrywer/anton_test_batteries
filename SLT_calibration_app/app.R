@@ -15,7 +15,7 @@ path <- if (on_server) {
 }
 messagef <- function(...) message(sprintf(...))
 messagef("Monitor läuft auf %s — path = %s", ifelse(on_server, "Server", "lokal (Mac)"), path)
-### GEÄNDERT ENDE ###
+
 
 files <- list.files(path, pattern = "\\.rds$", full.names = TRUE)
 
@@ -35,9 +35,9 @@ extract_person_data <- function(file) {
       difftime(x$session$current_time, x$session$time_started, units = "mins")
     ), 1),
     ### GEÄNDERT START — Prolific-URL-Parameter einlesen ###
-    prolific_pid         = if(!is.null(x$prolific_pid))        x$prolific_pid        else NA_character_,
-    prolific_study_id    = if(!is.null(x$prolific_study_id))   x$prolific_study_id   else NA_character_,
-    prolific_session_id  = if(!is.null(x$prolific_session_id)) x$prolific_session_id else NA_character_,
+    prolific_pid         = if(!is.null(x$results$prolific_pid))       x$results$prolific_pid       else NA_character_,
+    prolific_study_id    = if(!is.null(x$results$prolific_study_id))  x$results$prolific_study_id  else NA_character_,
+    prolific_session_id  = if(!is.null(x$results$prolific_session_id)) x$results$prolific_session_id else NA_character_,
     ### GEÄNDERT ENDE ###
     session.complete = if(!is.null(x$session$complete)) x$session$complete else NA,
     DEG.school_degree = x$DEG$`School Degree`,
@@ -100,17 +100,26 @@ extract_item_data <- function(file) {
 is_debug_session <- function(prolific_pid) {
   is.na(prolific_pid) | prolific_pid == ""
 }
-### GEÄNDERT START — Session-Tracking für Dropout-Analyse (nach Vorbild longgold_monitor) ###
 read_sessions <- function(session_path) {
   dirs <- list.files(session_path, full.names = TRUE)
   purrr::map_dfr(dirs, function(d) {
     data_file <- file.path(d, "data.RDS")
     ts_file   <- file.path(d, "timestamp.RDS")
     if (!file.exists(data_file) || !file.exists(ts_file)) return(NULL)
+    
     data_f     <- readRDS(data_file)
     time_stamp <- readRDS(ts_file)
+    
+    # Extraktion der Prolific PID aus den URL-Parametern der Session (Struktur y)
+    p_pid <- if(!is.null(data_f$passive$url_params$PROLIFIC_PID)) {
+      data_f$passive$url_params$PROLIFIC_PID
+    } else {
+      NA_character_
+    }
+    
     tibble(
       p_id                  = data_f$passive$p_id,
+      prolific_pid          = p_pid, # Wichtig für die Filter-Funktion!
       time_started          = data_f$passive$time_started,
       time_last_modified    = time_stamp,
       session_duration_min  = round(as.numeric(
@@ -120,7 +129,6 @@ read_sessions <- function(session_path) {
     )
   })
 }
-### GEÄNDERT ENDE ###
 
 data <- map_df(files, extract_person_data)
 slt_items_data <- map_df(files, extract_item_data)
@@ -282,7 +290,10 @@ server <- function(input, output, session) {
   filtered_data <- reactive({
     ld <- live_data()
     if (!isTRUE(input$exclude_debug)) return(ld)
+    
+    # Expliziter Verweis auf die Spalte innerhalb des person-Tibbles
     real_persons <- ld$person %>% filter(!is_debug_session(prolific_pid))
+    
     list(
       person = real_persons,
       items  = ld$items %>% filter(id %in% real_persons$id)
