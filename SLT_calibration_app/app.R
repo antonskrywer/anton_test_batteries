@@ -4,11 +4,17 @@ library(shiny)
 library(shinythemes)
 library(tidyverse)
 library(purrr)
+library(DT)
 
 
-# path <- "/srv/shiny-server/SLT_calibration/output/results/"
-
-path <- "/Users/Anton/Nextcloud/anton_test_batteries/output/results/SLT/"
+path <- if (on_server) {
+  "/srv/shiny_server/SLT_calibration/output/results/"
+} else {
+  "/Users/Anton/Nextcloud/anton_test_batteries/output/results/SLT/"
+}
+messagef <- function(...) message(sprintf(...))
+messagef("Monitor läuft auf %s — path = %s", ifelse(on_server, "Server", "lokal (Mac)"), path)
+### GEÄNDERT ENDE ###
 
 files <- list.files(path, pattern = "\\.rds$", full.names = TRUE)
 
@@ -90,8 +96,30 @@ extract_item_data <- function(file) {
     NULL
   }
 }
-
-
+is_debug_session <- function(prolific_pid) {
+  is.na(prolific_pid) | prolific_pid == ""
+}
+### GEÄNDERT START — Session-Tracking für Dropout-Analyse (nach Vorbild longgold_monitor) ###
+read_sessions <- function(session_path) {
+  dirs <- list.files(session_path, full.names = TRUE)
+  purrr::map_dfr(dirs, function(d) {
+    data_file <- file.path(d, "data.RDS")
+    ts_file   <- file.path(d, "timestamp.RDS")
+    if (!file.exists(data_file) || !file.exists(ts_file)) return(NULL)
+    data_f     <- readRDS(data_file)
+    time_stamp <- readRDS(ts_file)
+    tibble(
+      p_id                  = data_f$passive$p_id,
+      time_started          = data_f$passive$time_started,
+      time_last_modified    = time_stamp,
+      session_duration_min  = round(as.numeric(
+        difftime(time_stamp, data_f$passive$time_started, units = "mins")), 1),
+      num_restarts          = data_f$passive$num_restarts,
+      tests_finished        = paste(data_f$passive$results %>% as.list() %>% names(), collapse = "; ")
+    )
+  })
+}
+### GEÄNDERT ENDE ###
 
 data <- map_df(files, extract_person_data)
 slt_items_data <- map_df(files, extract_item_data)
@@ -122,6 +150,7 @@ ui <- fluidPage(
         wellPanel(
           htmlOutput("sample_info")
         ),
+        checkboxInput("exclude_debug", "Nur echte Prolific-Teilnehmer anzeigen", value = TRUE),
         hr(),
         selectInput(
           "construct",
@@ -193,7 +222,18 @@ ui <- fluidPage(
           tableOutput("duplicate_table")
         )
       )
+    ),
+    ### GEÄNDERT START — Sessions inkl. Abbrecher ###
+    tabPanel(
+      "Sessions (inkl. Abbrecher)",
+      mainPanel(
+        width = 12,
+        p("Zeigt ALLE gestarteten Sessions, auch abgebrochene — basierend auf",
+          code("output/sessions/"), "statt nur auf gespeicherten Ergebnisdateien."),
+        DT::DTOutput("session_table")
+      )
     )
+    ### GEÄNDERT ENDE ###
   )
 )
 
@@ -217,10 +257,40 @@ server <- function(input, output, session) {
       )
     }
   )
+  ### GEÄNDERT START — reaktive Session-Daten inkl. Abbrecher ###
+  session_path <- stringr::str_replace(path, "results", "sessions")
+  
+  live_sessions <- shiny::reactivePoll(
+    intervalMillis = 5000,
+    session = session,
+    checkFunc = function() {
+      ds <- list.files(session_path, full.names = TRUE)
+      if (length(ds) == 0) return("")
+      paste(length(ds), max(file.info(ds)$mtime, na.rm = TRUE))
+    },
+    valueFunc = function() read_sessions(session_path)
+  )
+  
+  output$session_table <- DT::renderDT({
+    finished_ids <- live_data()$person$id
+    live_sessions() %>%
+      mutate(is_finished = p_id %in% finished_ids) %>%
+      arrange(desc(time_started))
+  })
+  ### GEÄNDERT ENDE ###
+  filtered_data <- reactive({
+    ld <- live_data()
+    if (!isTRUE(input$exclude_debug)) return(ld)
+    real_persons <- ld$person %>% filter(!is_debug_session(prolific_pid))
+    list(
+      person = real_persons,
+      items  = ld$items %>% filter(id %in% real_persons$id)
+    )
+  })
   # 1. Stichproben-Größe (N) tracken
   output$sample_info <- renderText({
     ### GEÄNDERT START ###
-    df <- live_data()$person
+    df <- filtered_data()$person
     n_total <- nrow(df)
     
     if ("session.complete" %in% names(df)) {
@@ -231,9 +301,9 @@ server <- function(input, output, session) {
       n_incomplete <- n_total - n_complete
     }
     ### GEÄNDERT ENDE ###
-    n_with_prolific <- sum(!is.na(data$prolific_pid) & data$prolific_pid != "")
-    erste_erhebung  <- format(min(data$session_datetime, na.rm = TRUE), "%d.%m.%Y %H:%M")
-    letzte_erhebung <- format(max(data$session_datetime, na.rm = TRUE), "%d.%m.%Y %H:%M")
+    n_with_prolific <- sum(!is.na(df$prolific_pid) & df$prolific_pid != "")
+    erste_erhebung  <- format(min(df$session_datetime, na.rm = TRUE), "%d.%m.%Y %H:%M")
+    letzte_erhebung <- format(max(df$session_datetime, na.rm = TRUE), "%d.%m.%Y %H:%M")
     paste0(
       "<b>Gesamt-Datensätze (N):</b> ", n_total, "<br>",
       "<span style='color: green;'><b>Vollständig:</b> ", n_complete, "</span><br>",
@@ -259,7 +329,7 @@ server <- function(input, output, session) {
     vars <- selected_vars()
     req(length(vars) > 0)
     
-    live_data()$person %>%
+    filtered_data()$person %>%
       select(all_of(vars)) %>%
       keep(is.numeric) %>% 
       pivot_longer(cols = everything(), names_to = "Variable", values_to = "Wert") %>%
@@ -278,7 +348,7 @@ server <- function(input, output, session) {
   output$slt_block_table <- renderTable({
     req(input$construct == "slt", nrow(slt_items_data) > 0)
     
-    live_data()$items %>%
+    filtered_data()$items %>%
       group_by(block) %>%
       summarise(
         "Geleistete Items (Gesamt)" = n(),
@@ -312,7 +382,7 @@ server <- function(input, output, session) {
       plotname <- paste0("plot_", varname)
       
       output[[plotname]] <- renderPlot({
-        df_clean <- live_data()$person %>% filter(!is.na(.data[[varname]]))
+        df_clean <- filtered_data()$person %>% filter(!is.na(.data[[varname]]))
         
         ggplot(df_clean, aes(x = .data[[varname]])) +
           geom_histogram(bins = 20, fill = "#337ab7", color = "white", alpha = 0.8) +
@@ -330,7 +400,7 @@ server <- function(input, output, session) {
   output$corplot_ui <- renderPlot({
     req(input$covariate1, input$covariate2)
     
-    df_plot <- live_data()$person %>%   ### GEÄNDERT ###
+    df_plot <- filtered_data()$person %>%   ### GEÄNDERT ###
       filter(!is.na(.data[[input$covariate1]]), !is.na(.data[[input$covariate2]]))
     
     ggplot(df_plot, aes(x = .data[[input$covariate1]], y = .data[[input$covariate2]])) +
@@ -347,7 +417,7 @@ server <- function(input, output, session) {
   output$prolific_table <- renderTable({
     dup_ids <- duplicate_pids()$prolific_pid
     
-    data %>%
+    live_data()$person %>%
       arrange(desc(session_datetime)) %>%
       select(id, session_date, session_clock, session_duration_min,
              prolific_pid, prolific_study_id, prolific_session_id,
@@ -358,7 +428,7 @@ server <- function(input, output, session) {
   output$download_prolific <- downloadHandler(
     filename = function() paste0("prolific_mapping_", Sys.Date(), ".csv"),
     content = function(file) {
-      mapping <- data %>%
+      mapping <- live_data()$person %>%
         select(id, prolific_pid, prolific_study_id, prolific_session_id,
                session.complete, SLT.score)
       write.csv(mapping, file, row.names = FALSE)
@@ -370,7 +440,7 @@ server <- function(input, output, session) {
   # (leere/NA-IDs werden ausgeschlossen, da lokale Testläufe sonst
   #  fälschlich als "Duplikate" markiert würden)
   duplicate_pids <- reactive({
-    data %>%
+    live_data()$person %>%
       filter(!is.na(prolific_pid), prolific_pid != "") %>%
       count(prolific_pid, name = "n_sessions") %>%
       filter(n_sessions > 1)
@@ -401,7 +471,7 @@ server <- function(input, output, session) {
     dup_ids <- duplicate_pids()$prolific_pid
     req(length(dup_ids) > 0)
     
-    data %>%
+    live_data()$person %>%
       filter(prolific_pid %in% dup_ids) %>%
       select(id, session_date, session_clock, session_duration_min,
              prolific_pid, prolific_study_id, prolific_session_id,
