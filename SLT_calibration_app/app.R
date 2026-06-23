@@ -201,18 +201,36 @@ ui <- fluidPage(
 # Define Server
 # -------------------------------------------------------------------------
 server <- function(input, output, session) {
-  
+  live_data <- shiny::reactivePoll(
+    intervalMillis = 5000,
+    session = session,
+    checkFunc = function() {
+      fs <- list.files(path, pattern = "\\.rds$", full.names = TRUE, recursive = TRUE)
+      if (length(fs) == 0) return("")
+      paste(length(fs), max(file.info(fs)$mtime, na.rm = TRUE))
+    },
+    valueFunc = function() {
+      fs <- list.files(path, pattern = "\\.rds$", full.names = TRUE, recursive = TRUE)
+      list(
+        person = purrr::map_df(fs, extract_person_data),
+        items  = purrr::map_df(fs, extract_item_data)
+      )
+    }
+  )
   # 1. Stichproben-Größe (N) tracken
   output$sample_info <- renderText({
-    n_total <- nrow(data)
+    ### GEÄNDERT START ###
+    df <- live_data()$person
+    n_total <- nrow(df)
     
-    if ("session.complete" %in% names(data)) {
-      n_complete <- sum(data$session.complete == TRUE, na.rm = TRUE)
-      n_incomplete <- sum(data$session.complete == FALSE | is.na(data$session.complete), na.rm = TRUE)
+    if ("session.complete" %in% names(df)) {
+      n_complete <- sum(df$session.complete == TRUE, na.rm = TRUE)
+      n_incomplete <- sum(df$session.complete == FALSE | is.na(df$session.complete), na.rm = TRUE)
     } else {
-      n_complete <- sum(complete.cases(data[, c("SLT.score", cols_gms)]), na.rm = TRUE)
+      n_complete <- sum(complete.cases(df[, c("SLT.score", cols_gms)]), na.rm = TRUE)
       n_incomplete <- n_total - n_complete
     }
+    ### GEÄNDERT ENDE ###
     n_with_prolific <- sum(!is.na(data$prolific_pid) & data$prolific_pid != "")
     erste_erhebung  <- format(min(data$session_datetime, na.rm = TRUE), "%d.%m.%Y %H:%M")
     letzte_erhebung <- format(max(data$session_datetime, na.rm = TRUE), "%d.%m.%Y %H:%M")
@@ -241,7 +259,7 @@ server <- function(input, output, session) {
     vars <- selected_vars()
     req(length(vars) > 0)
     
-    data %>%
+    live_data()$person %>%
       select(all_of(vars)) %>%
       keep(is.numeric) %>% 
       pivot_longer(cols = everything(), names_to = "Variable", values_to = "Wert") %>%
@@ -260,7 +278,7 @@ server <- function(input, output, session) {
   output$slt_block_table <- renderTable({
     req(input$construct == "slt", nrow(slt_items_data) > 0)
     
-    slt_items_data %>%
+    live_data()$items %>%
       group_by(block) %>%
       summarise(
         "Geleistete Items (Gesamt)" = n(),
@@ -294,7 +312,7 @@ server <- function(input, output, session) {
       plotname <- paste0("plot_", varname)
       
       output[[plotname]] <- renderPlot({
-        df_clean <- data %>% filter(!is.na(.data[[varname]]))
+        df_clean <- live_data()$person %>% filter(!is.na(.data[[varname]]))
         
         ggplot(df_clean, aes(x = .data[[varname]])) +
           geom_histogram(bins = 20, fill = "#337ab7", color = "white", alpha = 0.8) +
@@ -312,7 +330,7 @@ server <- function(input, output, session) {
   output$corplot_ui <- renderPlot({
     req(input$covariate1, input$covariate2)
     
-    df_plot <- data %>% 
+    df_plot <- live_data()$person %>%   ### GEÄNDERT ###
       filter(!is.na(.data[[input$covariate1]]), !is.na(.data[[input$covariate2]]))
     
     ggplot(df_plot, aes(x = .data[[input$covariate1]], y = .data[[input$covariate2]])) +
