@@ -6,6 +6,7 @@ library(tidyverse)
 library(purrr)
 library(DT)
 
+on_server <- Sys.info()[["sysname"]] != "Darwin"
 
 path <- if (on_server) {
   "/srv/shiny_server/SLT_calibration/output/results/"
