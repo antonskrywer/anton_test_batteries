@@ -1,0 +1,182 @@
+/* MLP-Design (Option A: Stufenkarten). Greift nur, solange eine MLP-Seite
+   angezeigt wird: mlp.js setzt dann die Klasse "mlp" auf <body>. */
+
+body.mlp {
+  --mlp-accent: #0271BB;        /* UHH-Blau */
+  --mlp-accent-bg: #E8F2FA;
+  --mlp-text: #1d1d1b;
+  --mlp-muted: #5c6b72;
+  --mlp-border: #d7dde0;
+  --mlp-surface: #ffffff;
+  --mlp-page: #f4f6f7;
+  background: var(--mlp-page);
+  color: var(--mlp-text);
+  font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Kopfbereich: Titel links, UHH-Logo rechts */
+body.mlp #psychTestR_header {
+  border: none !important;
+  border-bottom: 1px solid var(--mlp-border) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 8px 14px !important;
+  margin-bottom: 0;
+}
+body.mlp #title h4 {
+  padding-left: 0 !important;
+  font-size: 15px;
+  font-weight: bold;
+  color: var(--mlp-text);
+}
+body.mlp #logo { width: 110px !important; }
+
+/* Inhaltsrahmen: auf dem Smartphone volle Breite, auf dem Desktop schmale Spalte */
+body.mlp .container-fluid { padding-left: 0; padding-right: 0; }
+body.mlp #content { margin: 0; }
+body.mlp #content > .col-sm-2 { display: none; }
+body.mlp #content > .col-sm-8 {
+  width: 100%;
+  max-width: 560px;
+  float: none;
+  margin: 0 auto;
+}
+body.mlp #psychTestR_content {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 12px 14px 32px !important;
+  text-align: left;
+}
+
+/* Fortschrittsbalken */
+body.mlp .mlp-progress {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--mlp-border);
+  margin: 2px 0 18px;
+  overflow: hidden;
+}
+body.mlp .mlp-progress > div {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--mlp-accent);
+  transition: width 0.3s ease;
+}
+
+/* Fragetext */
+body.mlp .mlp-page { text-align: left; }
+body.mlp .mlp-prompt {
+  font-size: 17px;
+  line-height: 1.45;
+  margin: 0 0 16px;
+}
+body.mlp .mlp-prompt p { margin: 0 0 8px; }
+body.mlp .mlp-intro .mlp-prompt {
+  background: var(--mlp-surface);
+  border: 1px solid var(--mlp-border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+/* Antwortkarten (alle NAFC-Seiten) */
+body.mlp #response_ui > p { margin: 0 0 10px; }
+body.mlp #response_ui .btn {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100% !important;
+  min-height: 52px;
+  height: auto !important;
+  padding: 12px 14px !important;
+  text-align: left !important;
+  white-space: normal !important;
+  font-size: 15px !important;
+  line-height: 1.4 !important;
+  color: var(--mlp-text);
+  background: var(--mlp-surface);
+  border: 1px solid var(--mlp-border);
+  border-radius: 12px;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+@media (hover: hover) {
+  body.mlp #response_ui .btn:hover { border-color: var(--mlp-accent); }
+}
+body.mlp #response_ui .btn:focus { outline: none; }
+body.mlp #response_ui .btn:focus-visible { box-shadow: 0 0 0 3px var(--mlp-accent-bg); }
+
+/* Stufennummer mit Ampelfarbe (nur 5-stufige Item-Seiten): Rot = schwächste,
+   Grün = stärkste Beschreibung. mlp.js setzt die Klassen mlp-lv1 bis mlp-lv5. */
+body.mlp #response_ui .btn.mlp-lv1 { --lv: #C0392B; --lv-bg: #FBE9E7; }
+body.mlp #response_ui .btn.mlp-lv2 { --lv: #D9692B; --lv-bg: #FCEEE3; }
+body.mlp #response_ui .btn.mlp-lv3 { --lv: #B9800A; --lv-bg: #FBF3DD; }
+body.mlp #response_ui .btn.mlp-lv4 { --lv: #5E9A3F; --lv-bg: #EAF3E2; }
+body.mlp #response_ui .btn.mlp-lv5 { --lv: #2E8B57; --lv-bg: #E0F1E8; }
+body.mlp .mlp-num {
+  flex: 0 0 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  color: #ffffff;
+  background: var(--lv, var(--mlp-accent));
+}
+body.mlp .mlp-label { flex: 1; padding-top: 3px; }
+body.mlp .mlp-label strong { font-weight: bold; }
+
+/* Gewählte Karte (kurz sichtbar vor dem Weiterblättern) */
+body.mlp #response_ui .btn.mlp-selected {
+  border: 2px solid var(--lv, var(--mlp-accent)) !important;
+  background: var(--lv-bg, var(--mlp-accent-bg)) !important;
+  padding: 11px 13px !important;
+  transition: none;
+}
+body.mlp #response_ui .btn.mlp-selected .mlp-num {
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--lv, var(--mlp-accent));
+}
+body.mlp #response_ui.mlp-locked .btn:not(.mlp-selected) { opacity: 0.55; }
+
+/* Texteingaben und Weiter-Button */
+body.mlp #psychTestR_content .form-group { width: 100% !important; margin-bottom: 16px; }
+body.mlp #psychTestR_content input[type="text"] {
+  width: 100% !important;
+  height: 48px;
+  font-size: 17px;          /* >= 16px verhindert Auto-Zoom auf iOS */
+  padding: 10px 14px;
+  border: 1px solid var(--mlp-border);
+  border-radius: 12px;
+  box-shadow: none;
+}
+body.mlp #psychTestR_content input[type="text"]:focus {
+  border-color: var(--mlp-accent);
+  box-shadow: 0 0 0 3px var(--mlp-accent-bg);
+}
+body.mlp #psychTestR_content #next {
+  width: 100%;
+  height: 50px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #ffffff;
+  background: var(--mlp-accent);
+  border: none;
+  border-radius: 12px;
+}
+body.mlp #psychTestR_content #next:hover { background: #015a96; }
+
+/* Fehlermeldungen der Validierung */
+body.mlp .shiny-notification { border-radius: 12px; }
+
+@media (max-width: 480px) {
+  body.mlp .mlp-prompt { font-size: 16px; }
+  body.mlp #response_ui .btn { font-size: 14.5px !important; }
+  body.mlp #logo { width: 90px !important; }
+}
+
+/* ID- und Schlussseite (ohne MLP-Hülle) */
+body.mlp #psychTestR_content { font-size: 16px; line-height: 1.45; }
